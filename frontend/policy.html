@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="政策通 - AI政策补贴自动匹配与申报辅助工具">
+    <title>政策详情 - 政策通 PolicyPilot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- 政策详情页 -->
+    <div id="policy-detail-page">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">政</div>
+                        <div class="logo-text">政策通 <span>PolicyPilot</span></div>
+                    </a>
+                    <div class="header-nav">
+                        <a href="/" class="nav-link">首页</a>
+                        <a href="/my-results" id="my-results-link" class="nav-link hidden">我的诊断</a>
+                        <button id="login-btn" class="btn btn-outline btn-sm" onclick="showLoginModal()">
+                            <span>👤</span>
+                            <span>登录</span>
+                        </button>
+                        <div id="user-info" class="user-info hidden">
+                            <span id="user-phone"></span>
+                            <button class="btn btn-link btn-sm" onclick="logout()">退出</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="container">
+                <div class="policy-detail">
+                    <a href="javascript:void(0)" onclick="goBack()" class="back-btn">
+                        <span>←</span>
+                        <span>返回政策列表</span>
+                    </a>
+                    
+                    <div class="policy-detail-header">
+                        <h1 id="policy-detail-title" class="policy-detail-title"></h1>
+                        <div id="policy-detail-amount" class="policy-detail-amount"></div>
+                        
+                        <div class="policy-meta" style="margin-top: 16px;">
+                            <div class="policy-meta-item">
+                                <span class="icon">📍</span>
+                                <span id="detail-district"></span>
+                            </div>
+                            <div class="policy-meta-item">
+                                <span class="icon">🏛️</span>
+                                <span id="detail-department"></span>
+                            </div>
+                            <div class="policy-meta-item">
+                                <span class="icon">🏷️</span>
+                                <span id="detail-category"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>📝 政策概述</h3>
+                        <p id="detail-description" style="color: var(--gray-700); line-height: 1.8;"></p>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>💰 补贴说明</h3>
+                        <ul style="list-style: none;">
+                            <li><strong>补贴方式：</strong><span id="detail-ratio"></span></li>
+                            <li><strong>金额说明：</strong><span id="detail-amount"></span></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>✅ 申报条件</h3>
+                        <ul id="detail-conditions"></ul>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>📋 基本要求</h3>
+                        <ul id="detail-requirements"></ul>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>📦 申报材料</h3>
+                        <ul id="detail-materials"></ul>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>⏰ 申报时间</h3>
+                        <p id="detail-deadline" style="color: var(--gray-700);"></p>
+                    </div>
+                    
+                    <div class="policy-detail-section">
+                        <h3>🔗 政策原文</h3>
+                        <a id="policy-link" href="#" target="_blank" class="policy-link" style="display: none;">
+                            <span>查看官方政策文件</span>
+                            <span>↗</span>
+                        </a>
+                    </div>
+                    
+                    <div class="btn-group" style="justify-content: center; margin-top: 24px;">
+                        <button class="btn btn-secondary" onclick="goBack()">
+                            <span>←</span>
+                            <span>返回政策列表</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="window.location.href='/'">
+                            <span>🏠</span>
+                            <span>重新诊断</span>
+                        </button>
+                        <button id="generate-material-detail-btn" class="btn btn-primary" style="background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);">
+                            <span>📄</span>
+                            <span>生成申报材料</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-brand">
+                        政策通 <span>PolicyPilot</span> · 开源大叔
+                    </div>
+                    <div class="footer-text">
+                        © 2024-2026 政策通 · AI政策补贴自动匹配与申报辅助工具
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>登录 / 注册</h3>
+                <button class="modal-close" onclick="closeLoginModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">手机号 <span class="required">*</span></label>
+                    <input type="tel" id="login-phone" class="form-input" 
+                           placeholder="请输入11位手机号" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">验证码 <span class="required">*</span></label>
+                    <div class="verify-code-row">
+                        <input type="text" id="login-code" class="form-input" 
+                               placeholder="请输入验证码" maxlength="6">
+                        <button type="button" id="send-code-btn" class="btn btn-outline btn-sm" 
+                                onclick="sendVerifyCode()" disabled>
+                            发送验证码
+                        </button>
+                    </div>
+                    <p class="form-hint">测试阶段验证码填 <strong>123456</strong> 即可</p>
+                </div>
+                <div id="login-error" class="error-message hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLoginModal()">取消</button>
+                <button class="btn btn-primary" onclick="doLogin()">
+                    <span>登录 / 注册</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 材料生成模态框 -->
+    <div id="material-modal" class="modal modal-lg hidden">
+        <div class="modal-overlay" onclick="closeMaterialModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📄 生成申报材料</h3>
+                <button class="modal-close" onclick="closeMaterialModal()">×</button>
+            </div>
+            <div class="modal-body" id="material-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- 材料预览模态框 -->
+    <div id="preview-modal" class="modal modal-xl hidden">
+        <div class="modal-overlay" onclick="closePreviewModal()"></div>
+        <div class="modal-content modal-preview">
+            <div class="modal-header">
+                <h3>📋 申报材料预览</h3>
+                <button class="modal-close" onclick="closePreviewModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="preview-frame" class="preview-frame"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePreviewModal()">关闭</button>
+                <button class="btn btn-primary" onclick="downloadMaterial()">
+                    <span>💾</span>
+                    <span>下载完整材料包</span>
+                    <span class="price-tag">¥299/项</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // 从URL获取政策ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const policyId = urlParams.get('id');
+        
+        let currentPolicy = null;
+        let state = {
+            token: localStorage.getItem('policy_pilot_token'),
+            user: null,
+            selectedPolicyForMaterial: null,
+            generatedMaterial: null
+        };
+        
+        async function init() {
+            if (!policyId) {
+                alert('缺少政策ID');
+                window.location.href = '/';
+                return;
+            }
+            
+            checkAuthStatus();
+            await loadPolicyDetail();
+        }
+        
+        function checkAuthStatus() {
+            if (state.token) {
+                fetchUserInfo();
+            }
+        }
+        
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/user/info`, {
+                    headers: { 'Authorization': `Bearer ${state.token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    state.user = data.user;
+                    updateUserUI();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+            }
+        }
+        
+        function updateUserUI() {
+            const loginBtn = document.getElementById('login-btn');
+            const userInfo = document.getElementById('user-info');
+            const myResultsLink = document.getElementById('my-results-link');
+            const userPhone = document.getElementById('user-phone');
+            
+            if (state.user) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                myResultsLink.classList.remove('hidden');
+                if (userPhone) userPhone.textContent = state.user.phone_masked;
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+                myResultsLink.classList.add('hidden');
+            }
+        }
+        
+        function logout() {
+            state.token = null;
+            state.user = null;
+            localStorage.removeItem('policy_pilot_token');
+            updateUserUI();
+        }
+        
+        async function loadPolicyDetail() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/policy/${policyId}`);
+                
+                if (!response.ok) {
+                    throw new Error('获取政策详情失败');
+                }
+                
+                currentPolicy = await response.json();
+                showPolicyDetail(currentPolicy);
+                
+                // 绑定材料生成按钮
+                document.getElementById('generate-material-detail-btn').onclick = () => {
+                    if (state.token) {
+                        showMaterialModal(currentPolicy.id, currentPolicy.name);
+                    } else {
+                        showLoginModal();
+                    }
+                };
+                
+            } catch (error) {
+                alert('获取政策详情失败: ' + error.message);
+                window.history.back();
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+        
+        function showPolicyDetail(policy) {
+            document.getElementById('policy-detail-title').textContent = policy.name;
+            document.getElementById('policy-detail-amount').textContent = 
+                policy.max_amount > 0 ? `最高 ${policy.max_amount} 万元` : '按条件奖励';
+            
+            document.getElementById('detail-district').textContent = policy.district;
+            document.getElementById('detail-department').textContent = policy.department;
+            document.getElementById('detail-category').textContent = policy.category;
+            document.getElementById('detail-ratio').textContent = policy.subsidy_ratio;
+            document.getElementById('detail-amount').textContent = policy.subsidy_amount;
+            document.getElementById('detail-deadline').textContent = policy.deadline;
+            document.getElementById('detail-description').textContent = policy.description;
+            
+            const conditionsList = document.getElementById('detail-conditions');
+            const allConditions = [
+                ...policy.conditions.industry.map(i => `行业：${i}`),
+                ...policy.conditions.scale.map(s => `规模：${s}`),
+                ...policy.conditions.region.map(r => `区域：${r}`),
+                ...policy.conditions.other.map(o => o)
+            ];
+            conditionsList.innerHTML = allConditions.map(c => `<li>${c}</li>`).join('');
+            
+            const requirementsList = document.getElementById('detail-requirements');
+            requirementsList.innerHTML = policy.requirements.map(r => `<li>${r}</li>`).join('');
+            
+            const materialsList = document.getElementById('detail-materials');
+            materialsList.innerHTML = policy.materials.map(m => `<li>${m}</li>`).join('');
+            
+            const linkElement = document.getElementById('policy-link');
+            if (linkElement && policy.link) {
+                linkElement.href = policy.link;
+                linkElement.style.display = 'inline-flex';
+            }
+        }
+        
+        function goBack() {
+            window.history.back();
+        }
+        
+        // 登录相关
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+            
+            const phoneInput = document.getElementById('login-phone');
+            phoneInput.oninput = function() {
+                const sendBtn = document.getElementById('send-code-btn');
+                sendBtn.disabled = this.value.length !== 11;
+            };
+        }
+        
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+        }
+        
+        function sendVerifyCode() {
+            alert('验证码已发送（测试模式：填123456即可）');
+            const sendBtn = document.getElementById('send-code-btn');
+            sendBtn.textContent = '已发送';
+            sendBtn.disabled = true;
+        }
+        
+        async function doLogin() {
+            const phone = document.getElementById('login-phone').value;
+            const code = document.getElementById('login-code').value;
+            const errorEl = document.getElementById('login-error');
+            
+            if (!phone || phone.length !== 11) {
+                errorEl.textContent = '请输入正确的11位手机号';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, verify_code: code })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    state.token = data.token;
+                    state.user = { id: data.user_id };
+                    localStorage.setItem('policy_pilot_token', data.token);
+                    closeLoginModal();
+                    updateUserUI();
+                    alert('登录成功！现在可以生成申报材料了');
+                } else {
+                    errorEl.textContent = data.detail || '登录失败';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorEl.textContent = '网络错误，请稍后重试';
+                errorEl.classList.remove('hidden');
+            }
+        }
+        
+        // 材料生成相关
+        async function generateMaterials(policyId, formData) {
+            const response = await fetch(`${API_BASE}/generate-materials`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    policy_id: policyId,
+                    company_name: formData.name,
+                    district: formData.district,
+                    industry: formData.industry,
+                    established_years: formData.establishedYears,
+                    employee_count: formData.employeeCount,
+                    revenue_scale: formData.revenueScale,
+                    has_ip: formData.hasIP,
+                    is_high_tech: formData.isHighTech,
+                    is_specialized: formData.isSpecialized,
+                    has_vc_investment: formData.hasVC
+                })
+            });
+            
+            if (!response.ok) throw new Error('生成申报材料失败');
+            return response.json();
+        }
+        
+        function showMaterialModal(policyId, policyName) {
+            state.selectedPolicyForMaterial = { id: policyId, name: policyName };
+            
+            const modal = document.getElementById('material-modal');
+            const body = document.getElementById('material-modal-body');
+            
+            // 默认企业信息（用户未诊断时）
+            const defaultFormData = {
+                name: '我的企业',
+                district: currentPolicy?.district || '海珠',
+                industry: '软件开发/互联网服务',
+                establishedYears: 3,
+                employeeCount: 20,
+                revenueScale: '500-2000万',
+                hasIP: false,
+                isHighTech: false,
+                isSpecialized: false,
+                hasVC: false
+            };
+            
+            body.innerHTML = `
+                <div class="material-step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        <span>确认企业信息</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">企业名称</label>
+                        <input type="text" id="material-company-name" class="form-input" value="${defaultFormData.name}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">所在区域</label>
+                        <select id="material-company-district" class="form-select">
+                            <option value="海珠" ${defaultFormData.district === '海珠' ? 'selected' : ''}>海珠区</option>
+                            <option value="天河" ${defaultFormData.district === '天河' ? 'selected' : ''}>天河区</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">所属行业</label>
+                        <select id="material-company-industry" class="form-select">
+                            <option value="人工智能/大模型">人工智能/大模型</option>
+                            <option value="软件开发/互联网服务" selected>软件开发/互联网服务</option>
+                            <option value="信息技术服务">信息技术服务</option>
+                            <option value="电子信息">电子信息</option>
+                            <option value="智能制造/工业自动化">智能制造/工业自动化</option>
+                            <option value="其他行业">其他行业</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="material-step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        <span>选择要申报的政策</span>
+                    </div>
+                    <div class="policy-select-card selected">
+                        <strong>${policyName}</strong>
+                        <p class="form-hint" style="margin-top: 4px;">将以此政策为基础生成申报材料</p>
+                    </div>
+                </div>
+                
+                <div class="material-step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        <span>生成并预览材料</span>
+                    </div>
+                    <p class="form-hint">点击下方按钮，系统将根据您的企业信息和政策要求，生成完整的申报材料包。</p>
+                    <button class="generate-btn" onclick="generateMaterialPreview()">
+                        <span>🚀</span>
+                        <span>生成申报材料</span>
+                    </button>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeMaterialModal() {
+            document.getElementById('material-modal').classList.add('hidden');
+        }
+        
+        async function generateMaterialPreview() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="width:20px;height:20px;border-width:2px;margin-right:8px;"></span> 生成中...';
+            
+            try {
+                const formData = {
+                    name: document.getElementById('material-company-name').value,
+                    district: document.getElementById('material-company-district').value,
+                    industry: document.getElementById('material-company-industry').value,
+                    establishedYears: 3,
+                    employeeCount: 20,
+                    revenueScale: '500-2000万',
+                    hasIP: false,
+                    isHighTech: false,
+                    isSpecialized: false,
+                    hasVC: false
+                };
+                
+                const result = await generateMaterials(state.selectedPolicyForMaterial.id, formData);
+                state.generatedMaterial = result;
+                
+                showPreviewModal(result.full_content);
+                closeMaterialModal();
+            } catch (error) {
+                alert('生成失败: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🚀</span><span>生成申报材料</span>';
+            }
+        }
+        
+        function showPreviewModal(htmlContent) {
+            const modal = document.getElementById('preview-modal');
+            const frame = document.getElementById('preview-frame');
+            frame.srcdoc = htmlContent;
+            modal.classList.remove('hidden');
+        }
+        
+        function closePreviewModal() {
+            document.getElementById('preview-modal').classList.add('hidden');
+        }
+        
+        function downloadMaterial() {
+            if (!state.generatedMaterial) return;
+            
+            const content = state.generatedMaterial.full_content;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `申报材料_${state.selectedPolicyForMaterial.name}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 全局导出
+        window.showLoginModal = showLoginModal;
+        window.closeLoginModal = closeLoginModal;
+        window.doLogin = doLogin;
+        window.logout = logout;
+        window.sendVerifyCode = sendVerifyCode;
+        window.goBack = goBack;
+        window.showMaterialModal = showMaterialModal;
+        window.closeMaterialModal = closeMaterialModal;
+        window.generateMaterialPreview = generateMaterialPreview;
+        window.showPreviewModal = showPreviewModal;
+        window.closePreviewModal = closePreviewModal;
+        window.downloadMaterial = downloadMaterial;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="政策通 - AI政策补贴自动匹配与申报辅助工具，为企业提供精准的政策匹配服务">
+    <title>政策通 PolicyPilot - AI政策补贴智能匹配</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="page">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">政</div>
+                        <div class="logo-text">政策通 <span>PolicyPilot</span></div>
+                    </a>
+                    <div class="header-nav">
+                        <a href="/" class="nav-link">首页</a>
+                        <a href="/my-results" id="my-results-link" class="nav-link hidden">我的诊断</a>
+                        <button id="login-btn" class="btn btn-outline btn-sm" onclick="showLoginModal()">
+                            <span>👤</span>
+                            <span>登录</span>
+                        </button>
+                        <div id="user-info" class="user-info hidden">
+                            <span id="user-phone"></span>
+                            <button class="btn btn-link btn-sm" onclick="logout()">退出</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容 -->
+        <main class="main">
+            <div class="container">
+                
+                <!-- 英雄区 -->
+                <section id="hero-section" class="hero">
+                    <div class="hero-badge">
+                        <span>🎯</span>
+                        <span>智能匹配 · 精准申报</span>
+                    </div>
+                    <h1 class="hero-title">
+                        让您的企业<br class="mobile-break"><span>不错过任何一笔</span><br class="mobile-break"><span class="highlight-green">政策补贴</span>
+                    </h1>
+                    <p class="hero-desc">
+                        基于AI智能分析，一键匹配广州海珠区、天河区最新政策补贴，
+                        精准定位适合您的申报项目，大幅提升申报成功率。
+                    </p>
+                    
+                    <button class="btn btn-primary btn-lg" onclick="startDiagnosis()">
+                        <span>🚀</span>
+                        <span>开始智能诊断</span>
+                    </button>
+                    
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">40+</div>
+                            <div class="stat-label">精选政策</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">2区</div>
+                            <div class="stat-label">覆盖区域</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">AI</div>
+                            <div class="stat-label">智能匹配</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 诊断表单 -->
+                <section id="form-section" class="form-section hidden">
+                    <div class="step-indicator">
+                        <div class="step-dot active"></div>
+                        <div class="step-dot"></div>
+                        <div class="step-dot"></div>
+                    </div>
+                    
+                    <h2 class="form-title">企业信息诊断</h2>
+                    <p class="form-subtitle">填写以下信息，我们将为您智能匹配适合的政策</p>
+                    
+                    <form id="diagnosis-form">
+                        <!-- 步骤1：基本信息 -->
+                        <div id="step-1" class="form-group">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    企业名称 <span class="required">*</span>
+                                </label>
+                                <input type="text" id="company-name" class="form-input" 
+                                       placeholder="请输入企业全称"
+                                       oninput="state.formData.name = this.value; updateNextButtonState()">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    所在区域 <span class="required">*</span>
+                                </label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item district-option" data-value="海珠" onclick="selectDistrict('海珠')">
+                                        <div class="checkbox-icon"></div>
+                                        <span>海珠区</span>
+                                    </div>
+                                    <div class="checkbox-item district-option" data-value="天河" onclick="selectDistrict('天河')">
+                                        <div class="checkbox-icon"></div>
+                                        <span>天河区</span>
+                                    </div>
+                                </div>
+                                <p class="form-hint">选择企业注册所在区域</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤2：经营信息 -->
+                        <div id="step-2" class="form-group">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    所属行业 <span class="required">*</span>
+                                </label>
+                                <select id="industry" class="form-select" 
+                                        onchange="state.formData.industry = this.value; updateNextButtonState()">
+                                    <option value="">请选择行业</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    营收规模 <span class="required">*</span>
+                                </label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item revenue-option" data-value="小于500万" onclick="selectRevenue('小于500万')">
+                                        <div class="checkbox-icon"></div>
+                                        <span>小于500万</span>
+                                    </div>
+                                    <div class="checkbox-item revenue-option" data-value="500-2000万" onclick="selectRevenue('500-2000万')">
+                                        <div class="checkbox-icon"></div>
+                                        <span>500-2000万</span>
+                                    </div>
+                                    <div class="checkbox-item revenue-option" data-value="2000万-1亿" onclick="selectRevenue('2000万-1亿')">
+                                        <div class="checkbox-icon"></div>
+                                        <span>2000万-1亿</span>
+                                    </div>
+                                    <div class="checkbox-item revenue-option" data-value="1亿以上" onclick="selectRevenue('1亿以上')">
+                                        <div class="checkbox-icon"></div>
+                                        <span>1亿以上</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">成立年限</label>
+                                <select id="established-years" class="form-select">
+                                    <option value="1">1年以下</option>
+                                    <option value="2">1-2年</option>
+                                    <option value="3">2-3年</option>
+                                    <option value="5" selected>3-5年</option>
+                                    <option value="8">5-8年</option>
+                                    <option value="10">8年以上</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">员工数量</label>
+                                <select id="employee-count" class="form-select">
+                                    <option value="5">5人以下</option>
+                                    <option value="10" selected>5-20人</option>
+                                    <option value="50">20-100人</option>
+                                    <option value="150">100-300人</option>
+                                    <option value="300">300人以上</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 步骤3：资质信息 -->
+                        <div id="step-3" class="form-group">
+                            <div class="form-group">
+                                <label class="form-label">企业资质（可多选）</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item qualification-item" data-key="isHighTech" onclick="toggleQualification(this)">
+                                        <div class="checkbox-icon"></div>
+                                        <span>高新技术企业</span>
+                                    </div>
+                                    <div class="checkbox-item qualification-item" data-key="isSpecialized" onclick="toggleQualification(this)">
+                                        <div class="checkbox-icon"></div>
+                                        <span>专精特新企业</span>
+                                    </div>
+                                    <div class="checkbox-item qualification-item" data-key="hasIP" onclick="toggleQualification(this)">
+                                        <div class="checkbox-icon"></div>
+                                        <span>拥有知识产权</span>
+                                    </div>
+                                    <div class="checkbox-item qualification-item" data-key="hasVC" onclick="toggleQualification(this)">
+                                        <div class="checkbox-icon"></div>
+                                        <span>获得风险投资</span>
+                                    </div>
+                                </div>
+                                <p class="form-hint">选择企业已有的资质认证，可帮助匹配更多政策</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 按钮组 -->
+                        <div class="btn-group">
+                            <button type="button" id="prev-btn" class="btn btn-secondary" style="display: none;" onclick="goToPrevStep()">
+                                <span>←</span>
+                                <span>上一步</span>
+                            </button>
+                            <button type="button" id="next-btn" class="btn btn-primary" disabled onclick="goToNextStep()">
+                                <span>下一步</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 加载状态 -->
+                <section id="loading-section" class="form-section hidden">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div class="loading-text">正在为您智能匹配政策，请稍候...</div>
+                    </div>
+                </section>
+
+                <!-- 结果展示 -->
+                <section id="result-section" class="hidden">
+                    <div class="result-header">
+                        <h2 id="result-title" class="result-title"></h2>
+                        <p id="result-subtitle" class="result-subtitle"></p>
+                        <div class="result-summary">
+                            <div class="summary-badge highlight">
+                                <span>匹配政策</span>
+                                <span class="value" id="total-matches">0</span>
+                                <span>条</span>
+                            </div>
+                            <div class="summary-badge">
+                                <span>重点推荐</span>
+                                <span class="value" id="highly-recommended">0</span>
+                                <span>条</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="policy-list" class="policy-list">
+                        <!-- 政策卡片将动态插入 -->
+                    </div>
+                    
+                    <div class="btn-group" style="justify-content: center; margin-top: 32px;">
+                        <button class="btn btn-secondary" onclick="resetAndStartOver()">
+                            <span>←</span>
+                            <span>重新诊断</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="goHome()">
+                            <span>🏠</span>
+                            <span>返回首页</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- 底部 -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-brand">
+                        政策通 <span>PolicyPilot</span> · 开源大叔
+                    </div>
+                    <div class="footer-text">
+                        © 2024-2026 政策通 · AI政策补贴自动匹配与申报辅助工具
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="login-modal-title">登录 / 注册</h3>
+                <button class="modal-close" onclick="closeLoginModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">手机号 <span class="required">*</span></label>
+                    <input type="tel" id="login-phone" class="form-input" 
+                           placeholder="请输入11位手机号" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">验证码 <span class="required">*</span></label>
+                    <div class="verify-code-row">
+                        <input type="text" id="login-code" class="form-input" 
+                               placeholder="请输入验证码" maxlength="6">
+                        <button type="button" id="send-code-btn" class="btn btn-outline btn-sm" 
+                                onclick="sendVerifyCode()" disabled>
+                            发送验证码
+                        </button>
+                    </div>
+                    <p class="form-hint">测试阶段验证码填 <strong>123456</strong> 即可</p>
+                </div>
+                <div id="login-error" class="error-message hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLoginModal()">取消</button>
+                <button class="btn btn-primary" onclick="doLogin()">
+                    <span>登录 / 注册</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 申报材料生成模态框 -->
+    <div id="material-modal" class="modal modal-lg hidden">
+        <div class="modal-overlay" onclick="closeMaterialModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📄 生成申报材料</h3>
+                <button class="modal-close" onclick="closeMaterialModal()">×</button>
+            </div>
+            <div class="modal-body" id="material-modal-body">
+                <!-- 动态内容 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 材料预览模态框 -->
+    <div id="preview-modal" class="modal modal-xl hidden">
+        <div class="modal-overlay" onclick="closePreviewModal()"></div>
+        <div class="modal-content modal-preview">
+            <div class="modal-header">
+                <h3>📋 申报材料预览</h3>
+                <button class="modal-close" onclick="closePreviewModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="preview-frame" class="preview-frame"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePreviewModal()">关闭</button>
+                <button class="btn btn-primary" onclick="downloadMaterial()">
+                    <span>💾</span>
+                    <span>下载完整材料包</span>
+                    <span class="price-tag">¥299/项</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">加载中...</div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

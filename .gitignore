@@ -43,3 +43,8 @@ secrets.json
 # 日志
 *.log
 logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3

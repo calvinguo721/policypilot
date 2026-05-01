@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="政策通 - 我的诊断历史">
+    <title>我的诊断 - 政策通 PolicyPilot</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="page">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">政</div>
+                        <div class="logo-text">政策通 <span>PolicyPilot</span></div>
+                    </a>
+                    <div class="header-nav">
+                        <a href="/" class="nav-link">首页</a>
+                        <button id="login-btn" class="btn btn-outline btn-sm" onclick="showLoginModal()">
+                            <span>👤</span>
+                            <span>登录</span>
+                        </button>
+                        <div id="user-info" class="user-info hidden">
+                            <span id="user-phone"></span>
+                            <button class="btn btn-link btn-sm" onclick="logout()">退出</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容 -->
+        <main class="main">
+            <div class="container">
+                <div class="results-page">
+                    <div class="results-page-header">
+                        <h1 class="results-page-title">📋 我的诊断历史</h1>
+                        <p class="result-subtitle">查看您历次的政策匹配诊断结果</p>
+                    </div>
+                    
+                    <div id="results-container">
+                        <div class="loading-content">
+                            <div class="spinner"></div>
+                            <p>加载中...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group" style="justify-content: center; margin-top: 32px;">
+                        <a href="/" class="btn btn-primary">
+                            <span>🚀</span>
+                            <span>开始新的诊断</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部 -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-brand">
+                        政策通 <span>PolicyPilot</span> · 开源大叔
+                    </div>
+                    <div class="footer-text">
+                        © 2024-2026 政策通 · AI政策补贴自动匹配与申报辅助工具
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeLoginModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="login-modal-title">登录 / 注册</h3>
+                <button class="modal-close" onclick="closeLoginModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">手机号 <span class="required">*</span></label>
+                    <input type="tel" id="login-phone" class="form-input" 
+                           placeholder="请输入11位手机号" maxlength="11">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">验证码 <span class="required">*</span></label>
+                    <div class="verify-code-row">
+                        <input type="text" id="login-code" class="form-input" 
+                               placeholder="请输入验证码" maxlength="6">
+                        <button type="button" id="send-code-btn" class="btn btn-outline btn-sm" 
+                                onclick="sendVerifyCode()" disabled>
+                            发送验证码
+                        </button>
+                    </div>
+                    <p class="form-hint">测试阶段验证码填 <strong>123456</strong> 即可</p>
+                </div>
+                <div id="login-error" class="error-message hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLoginModal()">取消</button>
+                <button class="btn btn-primary" onclick="doLogin()">
+                    <span>登录 / 注册</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        let state = {
+            token: localStorage.getItem('policy_pilot_token'),
+            user: null
+        };
+        
+        async function init() {
+            if (!state.token) {
+                showLoginRequired();
+                return;
+            }
+            
+            try {
+                await fetchUserInfo();
+                await loadResults();
+            } catch (error) {
+                if (error.message.includes('登录')) {
+                    showLoginRequired();
+                } else {
+                    showError('加载失败，请刷新重试');
+                }
+            }
+        }
+        
+        async function fetchUserInfo() {
+            const response = await fetch(`${API_BASE}/user/info`, {
+                headers: { 'Authorization': `Bearer ${state.token}` }
+            });
+            
+            if (!response.ok) {
+                throw new Error('请重新登录');
+            }
+            
+            const data = await response.json();
+            state.user = data.user;
+            updateUserUI();
+        }
+        
+        function updateUserUI() {
+            const loginBtn = document.getElementById('login-btn');
+            const userInfo = document.getElementById('user-info');
+            const userPhone = document.getElementById('user-phone');
+            
+            if (state.user) {
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                if (userPhone) userPhone.textContent = state.user.phone_masked;
+            } else {
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.add('hidden');
+            }
+        }
+        
+        function logout() {
+            state.token = null;
+            state.user = null;
+            localStorage.removeItem('policy_pilot_token');
+            updateUserUI();
+            showLoginRequired();
+        }
+        
+        function showLoginRequired() {
+            document.getElementById('results-container').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔐</div>
+                    <div class="empty-title">请先登录</div>
+                    <div class="empty-desc">登录后即可查看您的诊断历史</div>
+                    <button class="btn btn-primary" onclick="showLoginModal()" style="margin-top: 16px;">
+                        去登录
+                    </button>
+                </div>
+            `;
+        }
+        
+        function showError(message) {
+            document.getElementById('results-container').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">❌</div>
+                    <div class="empty-title">出错了</div>
+                    <div class="empty-desc">${message}</div>
+                </div>
+            `;
+        }
+        
+        async function loadResults() {
+            const response = await fetch(`${API_BASE}/user/results`, {
+                headers: { 'Authorization': `Bearer ${state.token}` }
+            });
+            
+            if (!response.ok) {
+                throw new Error('获取历史记录失败');
+            }
+            
+            const data = await response.json();
+            renderResults(data.results);
+        }
+        
+        function renderResults(results) {
+            const container = document.getElementById('results-container');
+            
+            if (!results || results.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">暂无诊断记录</div>
+                        <div class="empty-desc">完成诊断后，记录将显示在这里</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = results.map(result => {
+                const date = new Date(result.created_at).toLocaleString('zh-CN');
+                const policies = result.matched_policies || [];
+                const topPolicies = policies.slice(0, 3);
+                
+                return `
+                    <div class="result-card">
+                        <div class="result-card-header">
+                            <div class="result-company">${result.company_name}</div>
+                            <div class="result-date">${date}</div>
+                        </div>
+                        <div class="result-stats">
+                            <div class="result-stat">
+                                匹配政策：<strong>${result.total_matches}</strong> 条
+                            </div>
+                            <div class="result-stat">
+                                重点推荐：<strong>${result.highly_recommended}</strong> 条
+                            </div>
+                            <div class="result-stat">
+                                所在区域：<strong>${result.company_district}</strong>
+                            </div>
+                        </div>
+                        ${topPolicies.length > 0 ? `
+                            <div class="policy-tags" style="margin-top: 12px;">
+                                <strong style="font-size: 13px; color: var(--gray-600); margin-right: 8px;">匹配政策：</strong>
+                                ${topPolicies.map(p => `<span class="policy-tag">${p.policy.name}</span>`).join('')}
+                                ${policies.length > 3 ? `<span class="policy-tag">+${policies.length - 3}条</span>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 登录相关
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+            
+            const phoneInput = document.getElementById('login-phone');
+            phoneInput.oninput = function() {
+                const sendBtn = document.getElementById('send-code-btn');
+                sendBtn.disabled = this.value.length !== 11;
+            };
+        }
+        
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('login-phone').value = '';
+            document.getElementById('login-code').value = '';
+            document.getElementById('login-error').classList.add('hidden');
+        }
+        
+        function sendVerifyCode() {
+            const phone = document.getElementById('login-phone').value;
+            if (phone.length === 11) {
+                const sendBtn = document.getElementById('send-code-btn');
+                sendBtn.textContent = '已发送';
+                sendBtn.disabled = true;
+                alert('验证码已发送（测试模式：填123456即可）');
+            }
+        }
+        
+        async function doLogin() {
+            const phone = document.getElementById('login-phone').value;
+            const code = document.getElementById('login-code').value;
+            const errorEl = document.getElementById('login-error');
+            
+            if (!phone || phone.length !== 11) {
+                errorEl.textContent = '请输入正确的11位手机号';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            if (!code) {
+                errorEl.textContent = '请输入验证码';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, verify_code: code })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    state.token = data.token;
+                    state.user = { id: data.user_id };
+                    localStorage.setItem('policy_pilot_token', data.token);
+                    closeLoginModal();
+                    updateUserUI();
+                    await loadResults();
+                    alert('登录成功！');
+                } else {
+                    errorEl.textContent = data.detail || '登录失败';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorEl.textContent = '网络错误，请稍后重试';
+                errorEl.classList.remove('hidden');
+            }
+        }
+        
+        // 全局导出
+        window.showLoginModal = showLoginModal;
+        window.closeLoginModal = closeLoginModal;
+        window.doLogin = doLogin;
+        window.logout = logout;
+        window.sendVerifyCode = sendVerifyCode;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
