@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="政策通 Token API - 完整的API文档和接入指南">
+    <title>API文档 - 政策通 Token API</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo-text { color: #f1f5f9; }
+        .logo-text span { color: #38bdf8; }
+        .logo-icon { background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%); }
+        .nav-link { color: #94a3b8; }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
+        .nav-link-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%) !important;
+            color: #0f172a !important;
+        }
+        .footer {
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .footer-brand { color: #94a3b8; }
+        .docs-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 16px;
+        }
+        .docs-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .docs-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 12px;
+        }
+        .docs-subtitle { font-size: 16px; color: #94a3b8; }
+        .docs-section {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .docs-section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .docs-section-title .icon { font-size: 24px; }
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .step-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .step-content h4 { font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+        .step-content p { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+        .endpoint-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .method-badge {
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+        .method-badge.get { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .method-badge.post { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .endpoint-path {
+            font-family: monospace;
+            font-size: 14px;
+            color: #f1f5f9;
+        }
+        .endpoint-desc { font-size: 14px; color: #94a3b8; margin-bottom: 16px; }
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin: 12px 0;
+            overflow-x: auto;
+        }
+        .code-block-title {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .code-block pre {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            color: #e2e8f0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pricing-table th, .pricing-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .pricing-table th {
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .pricing-table td { color: #e2e8f0; font-size: 14px; }
+        .pricing-table .price { color: #38bdf8; font-weight: 700; }
+        .pricing-table .tag { 
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-recommend { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .param-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .param-table th, .param-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+        }
+        .param-table th { color: #94a3b8; font-weight: 600; }
+        .param-table td { color: #e2e8f0; }
+        .param-name { font-family: monospace; color: #38bdf8; }
+        .param-type { font-family: monospace; color: #a78bfa; font-size: 12px; }
+        .param-required { color: #f87171; font-size: 11px; }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .base-url {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #38bdf8;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .docs-title { font-size: 28px; }
+            .docs-section { padding: 20px; }
+            .endpoint-header { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">政</div>
+                        <div class="logo-text">政策通 <span>Token API</span></div>
+                    </a>
+                    <nav class="header-nav">
+                        <a href="/ai-chat" class="nav-link">🤖 AI助手</a>
+                        <a href="/api-docs" class="nav-link nav-link-primary">📖 API文档</a>
+                        <a href="/console" class="nav-link">💼 控制台</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <main class="main">
+            <div class="container docs-container">
+                <a href="/" class="back-link">← 返回首页</a>
+                
+                <div class="docs-header">
+                    <h1 class="docs-title">📖 API 文档</h1>
+                    <p class="docs-subtitle">完整的政策通 Token API 接入指南</p>
+                </div>
+
+                <!-- 基础URL -->
+                <div class="base-url">
+                    Base URL: <strong>http://localhost:8002</strong>
+                </div>
+
+                <!-- 认证方式 -->
+                <section class="docs-section" id="auth">
+                    <h2 class="docs-section-title"><span class="icon">🔐</span> 认证方式</h2>
+                    <p style="color: #94a3b8; margin-bottom: 16px;">
+                        所有 API 请求需要在 Header 中携带 API Key 进行认证：
+                    </p>
+                    <div class="code-block">
+                        <div class="code-block-title">Headers</div>
+                        <pre>X-API-Key: your_api_key_here</pre>
+                    </div>
+                </section>
+
+                <!-- 快速开始 -->
+                <section class="docs-section" id="quick-start">
+                    <h2 class="docs-section-title"><span class="icon">🚀</span> 快速开始</h2>
+                    <div class="step-list">
+                        <div class="step-item">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>注册获取 API Key</h4>
+                                <p>调用注册接口，获取你的专属 API Key。</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>充值账户</h4>
+                                <p>通过充值接口为账户充值，基础查询 0.1 元/次，高级查询 0.5 元/次。</p>
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>调用查询 API</h4>
+                                <p>使用你的 API Key 调用查询接口，开始享受政策数据服务。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 计费说明 -->
+                <section class="docs-section" id="pricing">
+                    <h2 class="docs-section-title"><span class="icon">💰</span> 计费说明</h2>
+                    <table class="pricing-table">
+                        <thead>
+                            <tr>
+                                <th>查询类型</th>
+                                <th>价格</th>
+                                <th>限流</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>基础查询</td>
+                                <td class="price">¥0.1/次</td>
+                                <td>100次/分钟</td>
+                                <td><span class="tag tag-recommend">推荐</span></td>
+                            </tr>
+                            <tr>
+                                <td>高级查询</td>
+                                <td class="price">¥0.5/次</td>
+                                <td>20次/分钟</td>
+                                <td>含AI智能解读</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="color: #64748b; font-size: 13px; margin-top: 16px;">
+                        ⚠️ 预充值模式：账户余额 = 已充值 - 已消费。每次查询前检查余额是否充足。
+                    </p>
+                </section>
+
+                <!-- API 端点 -->
+                <section class="docs-section" id="endpoints">
+                    <h2 class="docs-section-title"><span class="icon">🔌</span> API 端点</h2>
+
+                    <!-- 注册 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge post">POST</span>
+                            <span class="endpoint-path">/api/token/register</span>
+                        </div>
+                        <div class="endpoint-desc">注册新客户，获取 API Key</div>
+                        <table class="param-table">
+                            <thead>
+                                <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="param-name">company_name</td><td class="param-type">string</td><td>公司名称 <span class="param-required">必填</span></td></tr>
+                                <tr><td class="param-name">contact</td><td class="param-type">string</td><td>联系人</td></tr>
+                                <tr><td class="param-name">phone</td><td class="param-type">string</td><td>联系电话</td></tr>
+                                <tr><td class="param-name">email</td><td class="param-type">string</td><td>邮箱</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (curl)</div>
+                            <pre>curl -X POST http://localhost:8002/api/token/register \
+  -H "Content-Type: application/json" \
+  -d '{"company_name": "测试公司", "phone": "13800138000"}'</pre>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (Python)</div>
+                            <pre>import requests
+
+resp = requests.post("http://localhost:8002/api/token/register", json={
+    "company_name": "测试公司",
+    "phone": "13800138000"
+})
+data = resp.json()
+api_key = data["api_key"]</pre>
+                        </div>
+                    </div>
+
+                    <!-- 充值 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge post">POST</span>
+                            <span class="endpoint-path">/api/token/recharge</span>
+                        </div>
+                        <div class="endpoint-desc">为账户充值（模拟接口）</div>
+                        <table class="param-table">
+                            <thead>
+                                <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="param-name">amount</td><td class="param-type">number</td><td>充值金额(元) <span class="param-required">必填</span></td></tr>
+                            </tbody>
+                        </table>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (curl)</div>
+                            <pre>curl -X POST http://localhost:8002/api/token/recharge \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{"amount": 100}'</pre>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (Python)</div>
+                            <pre>import requests
+
+resp = requests.post("http://localhost:8002/api/token/recharge",
+    headers={"X-API-Key": "your_api_key"},
+    json={"amount": 100}
+)
+print(resp.json())</pre>
+                        </div>
+                    </div>
+
+                    <!-- 基础查询 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge post">POST</span>
+                            <span class="endpoint-path">/api/token/query</span>
+                        </div>
+                        <div class="endpoint-desc">基础政策查询 - 0.1元/次</div>
+                        <table class="param-table">
+                            <thead>
+                                <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="param-name">district</td><td class="param-type">string</td><td>区域（如：海珠区、天河区）</td></tr>
+                                <tr><td class="param-name">industry</td><td class="param-type">string</td><td>行业</td></tr>
+                                <tr><td class="param-name">company_type</td><td class="param-type">string</td><td>企业类型</td></tr>
+                                <tr><td class="param-name">keywords</td><td class="param-type">string[]</td><td>关键词数组</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (curl)</div>
+                            <pre>curl -X POST http://localhost:8002/api/token/query \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{"district": "海珠区", "industry": "人工智能"}'</pre>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (Python)</div>
+                            <pre>import requests
+
+resp = requests.post("http://localhost:8002/api/token/query",
+    headers={"X-API-Key": "your_api_key"},
+    json={
+        "district": "海珠区",
+        "industry": "人工智能",
+        "keywords": ["补贴", "创业"]
+    }
+)
+policies = resp.json()["data"]["policies"]</pre>
+                        </div>
+                    </div>
+
+                    <!-- 高级查询 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge post">POST</span>
+                            <span class="endpoint-path">/api/token/query/advanced</span>
+                        </div>
+                        <div class="endpoint-desc">高级政策查询(AI智能解读) - 0.5元/次</div>
+                        <table class="param-table">
+                            <thead>
+                                <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="param-name">query</td><td class="param-type">string</td><td>自然语言查询 <span class="param-required">必填</span></td></tr>
+                                <tr><td class="param-name">company_info</td><td class="param-type">object</td><td>企业信息（可选）</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (curl)</div>
+                            <pre>curl -X POST http://localhost:8002/api/token/query/advanced \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{"query": "我们是海珠区的AI创业公司，有什么补贴可以申请？"}'</pre>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (Python)</div>
+                            <pre>import requests
+
+resp = requests.post("http://localhost:8002/api/token/query/advanced",
+    headers={"X-API-Key": "your_api_key"},
+    json={
+        "query": "我们是海珠区的AI创业公司，有什么补贴可以申请？",
+        "company_info": {"name": "测试公司", "employees": 20}
+    }
+)
+result = resp.json()
+print(result["data"]["response"])</pre>
+                        </div>
+                    </div>
+
+                    <!-- 余额查询 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge get">GET</span>
+                            <span class="endpoint-path">/api/token/balance</span>
+                        </div>
+                        <div class="endpoint-desc">查询账户余额</div>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (curl)</div>
+                            <pre>curl http://localhost:8002/api/token/balance \
+  -H "X-API-Key: your_api_key"</pre>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-block-title">响应示例</div>
+                            <pre>{
+  "success": true,
+  "balance": 99.50,
+  "currency": "CNY"
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- 用量统计 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge get">GET</span>
+                            <span class="endpoint-path">/api/token/usage</span>
+                        </div>
+                        <div class="endpoint-desc">查询用量统计</div>
+                        <table class="param-table">
+                            <thead>
+                                <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="param-name">days</td><td class="param-type">number</td><td>查询天数，默认30，最大365</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="code-block">
+                            <div class="code-block-title">请求示例 (curl)</div>
+                            <pre>curl "http://localhost:8002/api/token/usage?days=7" \
+  -H "X-API-Key: your_api_key"</pre>
+                        </div>
+                    </div>
+
+                    <!-- 账单 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge get">GET</span>
+                            <span class="endpoint-path">/api/token/bill</span>
+                        </div>
+                        <div class="endpoint-desc">获取账单记录</div>
+                        <div class="code-block">
+                            <div class="code-block-title">响应示例</div>
+                            <pre>{
+  "success": true,
+  "bills": [
+    {"date": "2024-01-15", "type": "recharge", "amount": 100},
+    {"date": "2024-01-15", "type": "query", "amount": -0.1},
+    {"date": "2024-01-15", "type": "advanced_query", "amount": -0.5}
+  ]
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- API信息 -->
+                    <div class="endpoint-card">
+                        <div class="endpoint-header">
+                            <span class="method-badge get">GET</span>
+                            <span class="endpoint-path">/api/token/info</span>
+                        </div>
+                        <div class="endpoint-desc">获取API基本信息</div>
+                        <div class="code-block">
+                            <div class="code-block-title">响应示例</div>
+                            <pre>{
+  "success": true,
+  "version": "1.0",
+  "name": "政策通 Token API",
+  "description": "政策数据Token化基础设施"
+}</pre>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- 错误码 -->
+                <section class="docs-section" id="errors">
+                    <h2 class="docs-section-title"><span class="icon">⚠️</span> 错误码</h2>
+                    <table class="param-table">
+                        <thead>
+                            <tr><th>错误码</th><th>说明</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="param-name">401</td><td>API Key 无效或已过期</td></tr>
+                            <tr><td class="param-name">402</td><td>余额不足</td></tr>
+                            <tr><td class="param-name">429</td><td>请求过于频繁，请降速</td></tr>
+                            <tr><td class="param-name">500</td><td>服务端错误，请稍后重试</td></tr>
+                        </tbody>
+                    </table>
+                </section>
+
+            </div>
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-brand">开源大叔 · 政策通 Token API · 启觉科技</div>
+                    <div class="footer-text">© 2024-2026 政策通 · 政策数据Token化基础设施</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

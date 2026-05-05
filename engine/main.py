@@ -588,3 +588,110 @@ async def my_results_page():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)
+
+
+# ========== 新增静态页面路由 ==========
+
+@app.get("/api-docs")
+async def api_docs_page():
+    """API文档页面"""
+    page_path = os.path.join(frontend_dir, "api-docs.html")
+    if os.path.exists(page_path):
+        return FileResponse(page_path)
+    raise HTTPException(status_code=404, detail="页面不存在")
+
+
+@app.get("/console")
+async def console_page():
+    """控制台页面"""
+    page_path = os.path.join(frontend_dir, "console.html")
+    if os.path.exists(page_path):
+        return FileResponse(page_path)
+    raise HTTPException(status_code=404, detail="页面不存在")
+
+
+# ========== Token API 补充端点 ==========
+
+class TokenRechargeRequest(BaseModel):
+    amount: float = Field(..., gt=0, description="充值金额")
+
+
+class TokenBillResponse(BaseModel):
+    success: bool
+    bills: list
+    total: int
+
+
+@app.post("/api/token/recharge", summary="账户充值")
+async def token_recharge(
+    request: TokenRechargeRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key")
+):
+    """模拟充值接口"""
+    from customers import verify_api_key
+    customer = await verify_api_key(x_api_key)
+    
+    # 模拟充值逻辑
+    from database import execute_sql
+    execute_sql(
+        "UPDATE token_customers SET balance = balance + %s WHERE api_key = %s",
+        (request.amount, x_api_key)
+    )
+    
+    # 记录账单
+    execute_sql(
+        "INSERT INTO token_bills (customer_id, type, amount, description, created_at) VALUES (%s, %s, %s, %s, NOW())",
+        (customer['id'], 'recharge', request.amount, f'账户充值 {request.amount}元')
+    )
+    
+    return {
+        "success": True,
+        "message": f"充值成功，已充值 {request.amount} 元",
+        "amount": request.amount
+    }
+
+
+@app.get("/api/token/bill", summary="获取账单")
+async def token_bill(x_api_key: Optional[str] = Header(None, alias="X-API-Key")):
+    """获取账单记录"""
+    from customers import verify_api_key
+    from database import fetch_all, fetch_one
+    
+    customer = await verify_api_key(x_api_key)
+    
+    bills = fetch_all(
+        "SELECT DATE(created_at) as date, type, amount FROM token_bills WHERE customer_id = %s ORDER BY created_at DESC LIMIT 50",
+        (customer['id'],)
+    )
+    
+    return {
+        "success": True,
+        "bills": bills or [],
+        "total": len(bills) if bills else 0
+    }
+
+
+@app.get("/api/token/info", summary="获取API信息")
+async def token_info():
+    """获取API基本信息"""
+    return {
+        "success": True,
+        "version": "1.0.0",
+        "name": "政策通 Token API",
+        "description": "政策数据Token化基础设施",
+        "endpoints": {
+            "register": "POST /api/token/register - 注册客户",
+            "recharge": "POST /api/token/recharge - 账户充值",
+            "query": "POST /api/token/query - 基础查询(0.1元/次)",
+            "query_advanced": "POST /api/token/query/advanced - 高级查询(0.5元/次)",
+            "balance": "GET /api/token/balance - 查询余额",
+            "usage": "GET /api/token/usage - 用量统计",
+            "bill": "GET /api/token/bill - 账单记录",
+            "info": "GET /api/token/info - API信息"
+        },
+        "pricing": {
+            "basic_query": 0.1,
+            "advanced_query": 0.5,
+            "currency": "CNY"
+        }
+    }

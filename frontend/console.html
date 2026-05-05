@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="政策通 Token API - 管理控制台">
+    <title>管理控制台 - 政策通 Token API</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo-text { color: #f1f5f9; }
+        .logo-text span { color: #38bdf8; }
+        .logo-icon { background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%); }
+        .nav-link { color: #94a3b8; }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
+        .nav-link-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%) !important;
+            color: #0f172a !important;
+        }
+        .footer {
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .footer-brand { color: #94a3b8; }
+        .console-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 16px;
+        }
+        .console-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .console-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 8px;
+        }
+        .console-subtitle { font-size: 14px; color: #94a3b8; }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title .icon { font-size: 20px; }
+        /* 登录表单 */
+        .login-form {
+            max-width: 400px;
+            margin: 80px auto;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: var(--radius-md);
+            color: #f1f5f9;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            width: 100%;
+        }
+        .btn-primary:hover { box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #f1f5f9;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+        /* API Key 显示 */
+        .api-key-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+        }
+        .api-key-value {
+            flex: 1;
+            font-family: monospace;
+            font-size: 13px;
+            color: #38bdf8;
+            word-break: break-all;
+        }
+        .copy-btn {
+            padding: 6px 12px;
+            background: rgba(56, 189, 248, 0.2);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #38bdf8;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: rgba(56, 189, 248, 0.3); }
+        .copy-btn.copied { background: rgba(16, 185, 129, 0.3); color: #34d399; }
+        /* 余额卡片 */
+        .balance-display {
+            text-align: center;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(14, 165, 233, 0.1) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: var(--radius-lg);
+        }
+        .balance-label { font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
+        .balance-value { font-size: 42px; font-weight: 800; color: #38bdf8; }
+        .balance-value span { font-size: 20px; }
+        .balance-actions { margin-top: 20px; display: flex; gap: 12px; justify-content: center; }
+        /* 统计图表 */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-label { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: #f1f5f9; }
+        /* 用量柱状图 */
+        .chart-container {
+            margin-top: 20px;
+        }
+        .chart-title { font-size: 14px; color: #94a3b8; margin-bottom: 16px; }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 120px;
+            padding: 16px 0;
+        }
+        .bar-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .bar {
+            width: 100%;
+            background: linear-gradient(to top, #0ea5e9, #38bdf8);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            transition: height 0.5s ease;
+        }
+        .bar-label { font-size: 11px; color: #64748b; }
+        .bar-value { font-size: 12px; font-weight: 600; color: #94a3b8; }
+        /* 账单列表 */
+        .bill-list { display: flex; flex-direction: column; gap: 8px; }
+        .bill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: var(--radius-md);
+        }
+        .bill-info { display: flex; flex-direction: column; gap: 4px; }
+        .bill-type { font-size: 14px; color: #f1f5f9; }
+        .bill-date { font-size: 12px; color: #64748b; }
+        .bill-amount { font-size: 16px; font-weight: 600; }
+        .bill-amount.plus { color: #34d399; }
+        .bill-amount.minus { color: #f87171; }
+        /* 充值模态框 */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.hidden { display: none; }
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .modal-title { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 24px; text-align: center; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .modal-actions .btn { flex: 1; }
+        .amount-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .amount-option {
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .amount-option:hover { border-color: #38bdf8; }
+        .amount-option.selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
+        .amount-option-value { font-size: 20px; font-weight: 700; color: #38bdf8; }
+        .error-msg {
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            color: #f87171;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .error-msg.hidden { display: none; }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .hidden { display: none !important; }
+        @media (max-width: 768px) {
+            .console-title { font-size: 24px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .bar-chart { height: 80px; }
+            .bar-label { display: none; }
+            .amount-options { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">政</div>
+                        <div class="logo-text">政策通 <span>Token API</span></div>
+                    </a>
+                    <nav class="header-nav">
+                        <a href="/ai-chat" class="nav-link">🤖 AI助手</a>
+                        <a href="/api-docs" class="nav-link">📖 API文档</a>
+                        <a href="/console" class="nav-link nav-link-primary">💼 控制台</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <main class="main">
+            <div class="console-container">
+                <a href="/" class="back-link">← 返回首页</a>
+
+                <!-- 登录界面 -->
+                <div id="login-view" class="login-form">
+                    <div class="card">
+                        <div class="card-title"><span class="icon">🔑</span> API Key 登录</div>
+                        <div class="form-group">
+                            <label class="form-label">输入你的 API Key</label>
+                            <input type="text" id="api-key-input" class="form-input" 
+                                   placeholder="pk_xxxxxxxxxxxxxxxx">
+                        </div>
+                        <div id="login-error" class="error-msg hidden"></div>
+                        <button class="btn btn-primary" onclick="login()">登录控制台</button>
+                    </div>
+                </div>
+
+                <!-- 控制台主界面 -->
+                <div id="console-view" class="hidden">
+                    <div class="console-header">
+                        <h1 class="console-title">💼 管理控制台</h1>
+                        <p class="console-subtitle" id="company-name">欢迎回来</p>
+                    </div>
+
+                    <!-- API Key 卡片 -->
+                    <div class="card">
+                        <div class="card-title"><span class="icon">🔑</span> API Key</div>
+                        <div class="api-key-display">
+                            <span class="api-key-value" id="display-api-key">pk_xxxxxxxx</span>
+                            <button class="copy-btn" id="copy-btn" onclick="copyApiKey()">复制</button>
+                        </div>
+                    </div>
+
+                    <!-- 余额卡片 -->
+                    <div class="card">
+                        <div class="card-title"><span class="icon">💰</span> 账户余额</div>
+                        <div class="balance-display">
+                            <div class="balance-label">当前余额</div>
+                            <div class="balance-value">¥<span id="balance-value">0.00</span></div>
+                            <div class="balance-actions">
+                                <button class="btn btn-primary" onclick="showRechargeModal()">充值</button>
+                                <button class="btn btn-secondary" onclick="refreshBalance()">刷新</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 统计卡片 -->
+                    <div class="card">
+                        <div class="card-title"><span class="icon">📊</span> 用量统计</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">今日查询</div>
+                                <div class="stat-value" id="today-count">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">本月查询</div>
+                                <div class="stat-value" id="month-count">0</div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">近7日查询趋势</div>
+                            <div class="bar-chart" id="usage-chart">
+                                <div class="bar-item"><div class="bar" style="height:20%"></div><span class="bar-label">周一</span></div>
+                                <div class="bar-item"><div class="bar" style="height:40%"></div><span class="bar-label">周二</span></div>
+                                <div class="bar-item"><div class="bar" style="height:30%"></div><span class="bar-label">周三</span></div>
+                                <div class="bar-item"><div class="bar" style="height:60%"></div><span class="bar-label">周四</span></div>
+                                <div class="bar-item"><div class="bar" style="height:80%"></div><span class="bar-label">周五</span></div>
+                                <div class="bar-item"><div class="bar" style="height:50%"></div><span class="bar-label">周六</span></div>
+                                <div class="bar-item"><div class="bar" style="height:30%"></div><span class="bar-label">周日</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 账单记录 -->
+                    <div class="card">
+                        <div class="card-title"><span class="icon">📋</span> 账单记录</div>
+                        <div class="bill-list" id="bill-list">
+                            <div class="bill-item">
+                                <div class="bill-info">
+                                    <span class="bill-type">暂无账单记录</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 登出按钮 -->
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button class="btn btn-secondary" onclick="logout()">退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 充值模态框 -->
+        <div id="recharge-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-title">💰 账户充值</div>
+                <div class="amount-options">
+                    <div class="amount-option" onclick="selectAmount(10)" data-amount="10">
+                        <div class="amount-option-value">¥10</div>
+                    </div>
+                    <div class="amount-option selected" onclick="selectAmount(50)" data-amount="50">
+                        <div class="amount-option-value">¥50</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(100)" data-amount="100">
+                        <div class="amount-option-value">¥100</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(200)" data-amount="200">
+                        <div class="amount-option-value">¥200</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(500)" data-amount="500">
+                        <div class="amount-option-value">¥500</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(1000)" data-amount="1000">
+                        <div class="amount-option-value">¥1000</div>
+                    </div>
+                </div>
+                <div id="recharge-error" class="error-msg hidden"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeRechargeModal()">取消</button>
+                    <button class="btn btn-primary" onclick="doRecharge()">确认充值</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-brand">开源大叔 · 政策通 Token API · 启觉科技</div>
+                    <div class="footer-text">© 2024-2026 政策通 · 政策数据Token化基础设施</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002';
+        let currentApiKey = '';
+        let selectedAmount = 50;
+
+        // 检查是否已登录
+        function checkLogin() {
+            const savedKey = localStorage.getItem('token_api_key');
+            if (savedKey) {
+                currentApiKey = savedKey;
+                showConsole();
+                loadConsoleData();
+            }
+        }
+
+        // 登录
+        function login() {
+            const apiKey = document.getElementById('api-key-input').value.trim();
+            const errorEl = document.getElementById('login-error');
+            
+            if (!apiKey) {
+                errorEl.textContent = '请输入 API Key';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            currentApiKey = apiKey;
+            localStorage.setItem('token_api_key', apiKey);
+            errorEl.classList.add('hidden');
+            showConsole();
+            loadConsoleData();
+        }
+
+        // 显示控制台
+        function showConsole() {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('console-view').classList.remove('hidden');
+            document.getElementById('display-api-key').textContent = currentApiKey.substring(0, 20) + '...';
+        }
+
+        // 登出
+        function logout() {
+            localStorage.removeItem('token_api_key');
+            currentApiKey = '';
+            document.getElementById('login-view').classList.remove('hidden');
+            document.getElementById('console-view').classList.add('hidden');
+            document.getElementById('api-key-input').value = '';
+        }
+
+        // 复制 API Key
+        function copyApiKey() {
+            navigator.clipboard.writeText(currentApiKey).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.textContent = '已复制';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '复制';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // 刷新余额
+        async function refreshBalance() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/token/balance`, {
+                    headers: { 'X-API-Key': currentApiKey }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    document.getElementById('balance-value').textContent = data.balance.toFixed(2);
+                }
+            } catch (e) {
+                console.error('获取余额失败', e);
+            }
+        }
+
+        // 加载控制台数据
+        async function loadConsoleData() {
+            try {
+                // 加载余额
+                await refreshBalance();
+                
+                // 加载用量
+                const usageResp = await fetch(`${API_BASE}/api/token/usage?days=7`, {
+                    headers: { 'X-API-Key': currentApiKey }
+                });
+                const usageData = await usageResp.json();
+                if (usageData.success) {
+                    document.getElementById('today-count').textContent = usageData.today_count || 0;
+                    document.getElementById('month-count').textContent = usageData.month_count || 0;
+                    updateChart(usageData.daily_usage || []);
+                }
+
+                // 加载账单
+                const billResp = await fetch(`${API_BASE}/api/token/bill`, {
+                    headers: { 'X-API-Key': currentApiKey }
+                });
+                const billData = await billResp.json();
+                if (billData.success) {
+                    renderBills(billData.bills || []);
+                }
+            } catch (e) {
+                console.error('加载数据失败', e);
+            }
+        }
+
+        // 更新图表
+        function updateChart(dailyUsage) {
+            const chart = document.getElementById('usage-chart');
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            const maxCount = Math.max(...dailyUsage.map(d => d.count), 1);
+            
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                const count = dailyUsage[i] ? dailyUsage[i].count : 0;
+                const height = Math.max((count / maxCount) * 100, 5);
+                html += `<div class="bar-item">
+                    <div class="bar" style="height:${height}%"></div>
+                    <span class="bar-label">${days[i]}</span>
+                    <span class="bar-value">${count}</span>
+                </div>`;
+            }
+            chart.innerHTML = html;
+        }
+
+        // 渲染账单
+        function renderBills(bills) {
+            const list = document.getElementById('bill-list');
+            if (!bills.length) {
+                list.innerHTML = '<div class="bill-item"><div class="bill-info"><span class="bill-type">暂无账单记录</span></div></div>';
+                return;
+            }
+            
+            list.innerHTML = bills.slice(0, 10).map(bill => {
+                const typeMap = {
+                    'recharge': '账户充值',
+                    'query': '基础查询',
+                    'advanced_query': '高级查询'
+                };
+                const isPlus = bill.type === 'recharge';
+                return `<div class="bill-item">
+                    <div class="bill-info">
+                        <span class="bill-type">${typeMap[bill.type] || bill.type}</span>
+                        <span class="bill-date">${bill.date}</span>
+                    </div>
+                    <span class="bill-amount ${isPlus ? 'plus' : 'minus'}">
+                        ${isPlus ? '+' : ''}${bill.amount.toFixed(2)}
+                    </span>
+                </div>`;
+            }).join('');
+        }
+
+        // 充值模态框
+        function showRechargeModal() {
+            document.getElementById('recharge-modal').classList.remove('hidden');
+        }
+
+        function closeRechargeModal() {
+            document.getElementById('recharge-modal').classList.add('hidden');
+        }
+
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            document.querySelectorAll('.amount-option').forEach(el => {
+                el.classList.toggle('selected', parseInt(el.dataset.amount) === amount);
+            });
+        }
+
+        async function doRecharge() {
+            const errorEl = document.getElementById('recharge-error');
+            try {
+                const resp = await fetch(`${API_BASE}/api/token/recharge`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': currentApiKey
+                    },
+                    body: JSON.stringify({ amount: selectedAmount })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    closeRechargeModal();
+                    await refreshBalance();
+                    await loadConsoleData();
+                } else {
+                    errorEl.textContent = data.message || '充值失败';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                errorEl.textContent = '网络错误，请稍后重试';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', checkLogin);
+    </script>
+</body>
+</html>

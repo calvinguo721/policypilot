@@ -3,10 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="政策通 - AI政策申报导航仪，告诉您的情况，我来帮您找政策">
-    <title>AI政策顾问 - 政策通 PolicyPilot</title>
+    <meta name="description" content="政策通 AI助手 - 免费政策匹配体验">
+    <title>政策通 AI助手 — 免费试用</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/chat.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        .chat-header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo-text { color: #f1f5f9; }
+        .logo-text span { color: #38bdf8; }
+        .logo-icon { background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%); }
+        .chat-header-title { color: #f1f5f9; }
+        .chat-header-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+        .chat-footer {
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .chat-footer-text { color: #64748b; }
+        .chat-input-area {
+            background: rgba(30, 41, 59, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .chat-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #f1f5f9;
+        }
+        .chat-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        .send-btn {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+        }
+        .message-bot .message-content {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0;
+        }
+        .message-user .message-content {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+        }
+        .loading-dots span {
+            background: #38bdf8;
+        }
+        /* Token API 提示条 */
+        .token-promo {
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin: 0 16px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .token-promo-text {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .token-promo-text strong {
+            color: #38bdf8;
+        }
+        .token-promo-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .token-promo-btn:hover {
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+        }
+        @media (max-width: 768px) {
+            .token-promo {
+                flex-direction: column;
+                text-align: center;
+            }
+            .token-promo-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="chat-page">
@@ -16,18 +111,26 @@
                 <div class="chat-header-left">
                     <a href="/" class="logo">
                         <div class="logo-icon">政</div>
-                        <div class="logo-text">政策通 <span>PolicyPilot</span></div>
+                        <div class="logo-text">政策通 <span>Token API</span></div>
                     </a>
                 </div>
                 <div class="chat-header-title">
-                    🤖 AI政策顾问
-                    <span class="chat-header-badge">申报导航仪</span>
+                    🤖 AI助手 — 免费试用
+                    <span class="chat-header-badge">政策匹配</span>
                 </div>
             </div>
         </header>
 
         <!-- 主内容 -->
         <main class="chat-main">
+            <!-- Token API 提示 -->
+            <div class="token-promo">
+                <div class="token-promo-text">
+                    企业用户推荐使用 <strong>Token API</strong>，按量计费，5分钟接入
+                </div>
+                <a href="/api-docs" class="token-promo-btn">查看 API 文档 →</a>
+            </div>
+            
             <!-- 对话区域 -->
             <div class="chat-messages" id="chatMessages">
                 <!-- 消息将动态插入 -->
@@ -53,16 +156,14 @@
                     placeholder="用自然语言描述您的情况，比如：我是海珠区的AI创业公司"
                     rows="1"
                 ></textarea>
-                <button id="sendBtn" class="send-btn">
-                    ➤
-                </button>
+                <button id="sendBtn" class="send-btn">➤</button>
             </div>
         </div>
 
         <!-- Footer -->
         <footer class="chat-footer">
             <div class="chat-footer-text">
-                开源大叔 · 政策通 PolicyPilot · 启觉科技
+                开源大叔 · 政策通 Token API · 启觉科技
             </div>
         </footer>
     </div>
@@ -75,9 +176,7 @@
                 <h3>📄 生成申报材料</h3>
                 <button class="modal-close" onclick="closeMaterialModal()">×</button>
             </div>
-            <div class="modal-body" id="material-modal-body">
-                <!-- 动态内容 -->
-            </div>
+            <div class="modal-body" id="material-modal-body"></div>
         </div>
     </div>
 
@@ -97,7 +196,6 @@
                 <button class="btn btn-primary" onclick="downloadMaterial()">
                     <span>💾</span>
                     <span>下载完整材料包</span>
-                    <span class="price-tag">¥299/项</span>
                 </button>
             </div>
         </div>
@@ -118,7 +216,6 @@
                 </div>
             `;
             
-            // 获取政策信息
             fetch(`/policy/${policyId}`)
                 .then(r => r.json())
                 .then(policy => {
@@ -170,7 +267,6 @@
             
             const policy = selectedPolicyForMaterial;
             
-            // 构建请求
             const requestData = {
                 policy_id: policy.id,
                 company_name: companyName,

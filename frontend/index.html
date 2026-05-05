@@ -3,677 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="政策通 - AI政策补贴自动匹配与申报辅助工具，为企业提供精准的政策匹配服务">
-    <title>政策通 PolicyPilot - AI政策补贴智能匹配</title>
+    <meta name="description" content="政策通 Token API - 政策数据Token化基础设施，一个Query跨多源政策数据聚合，按查询计费">
+    <title>政策通 Token API - 政策数据Token化基础设施</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+        }
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo-text { color: #f1f5f9; }
+        .logo-text span { color: #38bdf8; }
+        .logo-icon {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+        }
+        .nav-link { color: #94a3b8; }
+        .nav-link:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
+        .nav-link-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%) !important;
+            color: #0f172a !important;
+        }
+        .footer {
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .footer-brand { color: #94a3b8; }
+        .hero-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c4a6e 100%);
+            border-radius: var(--radius-xl);
+            padding: 64px 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+            padding: 8px 20px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+        .hero-badge .pulse {
+            width: 8px; height: 8px;
+            background: #38bdf8;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        .hero-title {
+            font-size: clamp(32px, 6vw, 56px);
+            font-weight: 800;
+            color: #f8fafc;
+            line-height: 1.15;
+            margin-bottom: 20px;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, #38bdf8 0%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-subtitle {
+            font-size: 18px;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .hero-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .hero-btn-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4);
+        }
+        .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(56, 189, 248, 0.5);
+        }
+        .hero-btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #f1f5f9;
+        }
+        .hero-btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+        .hero-stat { text-align: center; }
+        .hero-stat-value { font-size: 36px; font-weight: 800; color: #38bdf8; }
+        .hero-stat-label { font-size: 14px; color: #64748b; margin-top: 4px; }
+        .features-section { margin-bottom: 40px; }
+        .features-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 32px;
+        }
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .feature-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 40px rgba(56, 189, 248, 0.1);
+        }
+        .feature-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .feature-card h3 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 12px; }
+        .feature-card p { font-size: 14px; color: #94a3b8; line-height: 1.7; margin-bottom: 16px; }
+        .feature-tag {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+        }
+        .pricing-section { margin-bottom: 40px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; max-width: 700px; margin: 0 auto; }
+        .pricing-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            text-align: center;
+            position: relative;
+        }
+        .pricing-card.popular {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.15);
+        }
+        .pricing-card.popular::before {
+            content: '推荐';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: var(--radius-full);
+        }
+        .pricing-name { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 16px; }
+        .pricing-price { font-size: 48px; font-weight: 800; color: #38bdf8; margin-bottom: 8px; }
+        .pricing-price span { font-size: 16px; color: #64748b; }
+        .pricing-desc { font-size: 14px; color: #64748b; margin-bottom: 20px; }
+        .pricing-feature { text-align: left; font-size: 14px; color: #94a3b8; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .pricing-feature:last-child { border-bottom: none; }
+        .trial-section {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .trial-title { text-align: center; font-size: 24px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+        .trial-subtitle { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 32px; }
+        .trial-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+        .trial-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+        @media (max-width: 768px) {
+            .hero-section { padding: 40px 20px; }
+            .hero-title { font-size: 28px; }
+            .hero-stats { gap: 24px; }
+            .hero-stat-value { font-size: 28px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .hero-actions { flex-direction: column; }
+            .hero-btn { width: 100%; justify-content: center; }
+        }
+    </style>
 </head>
 <body>
     <div class="page">
-        <!-- 头部 -->
         <header class="header">
             <div class="container">
                 <div class="header-content">
                     <a href="/" class="logo">
                         <div class="logo-icon">政</div>
-                        <div class="logo-text">政策通 <span>PolicyPilot</span></div>
+                        <div class="logo-text">政策通 <span>Token API</span></div>
                     </a>
-                    <div class="header-nav">
-                        <a href="/ai-chat" class="nav-link nav-link-primary">
-                            🤖 AI智能问答
-                        </a>
-                        <a href="/" class="nav-link">政策库</a>
-                        <a href="/my-results" id="my-results-link" class="nav-link hidden">我的诊断</a>
-                        <button id="login-btn" class="btn btn-outline btn-sm" onclick="showLoginModal()">
-                            <span>👤</span>
-                            <span>登录</span>
-                        </button>
-                        <div id="user-info" class="user-info hidden">
-                            <span id="user-phone"></span>
-                            <button class="btn btn-link btn-sm" onclick="logout()">退出</button>
-                        </div>
-                    </div>
+                    <nav class="header-nav">
+                        <a href="/ai-chat" class="nav-link">🤖 AI助手</a>
+                        <a href="/api-docs" class="nav-link nav-link-primary">📖 API文档</a>
+                        <a href="/console" class="nav-link">💼 控制台</a>
+                    </nav>
                 </div>
             </div>
         </header>
-
-        <!-- 主内容 -->
         <main class="main">
             <div class="container">
-                
-                <!-- AI对话核心入口 - Hero区 -->
-                <section class="hero ai-hero">
-                    <div class="ai-hero-content">
-                        <div class="ai-hero-badge">
-                            <span>🎯</span>
-                            <span>AI政策顾问 · 申报导航仪</span>
+                <section class="hero-section">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <span class="pulse"></span>
+                            <span>政策数据 Token 化基础设施</span>
                         </div>
-                        <h1 class="ai-hero-title">
-                            告诉政策通您的情况<br class="mobile-break">
-                            <span class="highlight-green">AI帮您找政策</span>
-                        </h1>
-                        <p class="ai-hero-desc">
-                            基于AI智能分析您的企业情况，自动匹配最适合的政策补贴，
-                            精准判断申报条件，大幅提升申报成功率。
+                        <h1 class="hero-title">政策通 <span class="highlight">Token API</span></h1>
+                        <p class="hero-subtitle">
+                            一个 Query，跨多源政策数据聚合，按查询计费<br>
+                            5分钟快速接入，释放政策数据价值
                         </p>
-                        
-                        <!-- 嵌入式对话入口 -->
-                        <div class="quick-chat-box">
-                            <div class="quick-chat-header">
-                                <span>🤖</span>
-                                <span>政策通 AI</span>
-                            </div>
-                            <div class="quick-chat-examples">
-                                <p class="quick-chat-tip">试试这样问我：</p>
-                                <div class="quick-example-chips">
-                                    <button class="quick-example-chip" onclick="location.href='/ai-chat?q=我是海珠区的AI创业公司'">💡 我是海珠区的AI创业公司</button>
-                                    <button class="quick-example-chip" onclick="location.href='/ai-chat?q=天河区软件企业有什么补贴'">💡 天河区软件企业补贴</button>
-                                    <button class="quick-example-chip" onclick="location.href='/ai-chat?q=专精特新企业怎么申报'">💡 专精特新申报条件</button>
-                                </div>
-                            </div>
-                            <a href="/ai-chat" class="quick-chat-start-btn">
-                                开始AI对话
-                                <span>→</span>
-                            </a>
+                        <div class="hero-actions">
+                            <a href="/api-docs" class="hero-btn hero-btn-primary">🚀 快速开始</a>
+                            <a href="/console" class="hero-btn hero-btn-secondary">📊 管理控制台</a>
                         </div>
-                        
-                        <div class="ai-hero-stats">
-                            <div class="stat-item">
-                                <div class="stat-value" id="policy-count">213+</div>
-                                <div class="stat-label">精选政策</div>
+                        <div class="hero-stats">
+                            <div class="hero-stat">
+                                <div class="hero-stat-value">8</div>
+                                <div class="hero-stat-label">API 端点</div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-value">广州+深圳</div>
-                                <div class="stat-label">覆盖区域</div>
+                            <div class="hero-stat">
+                                <div class="hero-stat-value" id="policy-count">213+</div>
+                                <div class="hero-stat-label">政策数据源</div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-value">AI</div>
-                                <div class="stat-label">智能解读</div>
+                            <div class="hero-stat">
+                                <div class="hero-stat-value">99.9%</div>
+                                <div class="hero-stat-label">服务可用性</div>
                             </div>
                         </div>
                     </div>
                 </section>
-
-                <!-- 功能入口卡片 -->
-                <section class="feature-section">
-                    <div class="feature-cards">
-                        <div class="feature-card" onclick="location.href='/ai-chat'">
-                            <div class="feature-icon">🤖</div>
-                            <h3>AI政策顾问</h3>
-                            <p>用自然语言描述您的情况，AI帮您分析适合的政策</p>
-                            <span class="feature-tag">智能匹配</span>
+                <section class="features-section">
+                    <h2 class="features-title">为什么选择政策通 Token API</h2>
+                    <div class="features-grid">
+                        <div class="feature-card" onclick="location.href='/api-docs#quick-start'">
+                            <div class="feature-icon">🔌</div>
+                            <h3>接入即用</h3>
+                            <p>标准 REST API，提供完整的 SDK 支持，5分钟完成系统集成，无需复杂配置。</p>
+                            <span class="feature-tag">5分钟接入</span>
                         </div>
-                        <div class="feature-card" onclick="location.href='/#form-section'">
-                            <div class="feature-icon">📋</div>
-                            <h3>企业诊断</h3>
-                            <p>填写企业信息，获取精准政策匹配报告</p>
-                            <span class="feature-tag">全面分析</span>
+                        <div class="feature-card" onclick="location.href='/api-docs#pricing'">
+                            <div class="feature-icon">💰</div>
+                            <h3>按量计费</h3>
+                            <p>基础查询仅需 0.1 元/次，高级查询 0.5 元/次，预充值模式，零门槛体验。</p>
+                            <span class="feature-tag">0.1元/次起</span>
                         </div>
-                        <div class="feature-card" onclick="location.href='/policy.html'">
-                            <div class="feature-icon">📚</div>
-                            <h3>政策库</h3>
-                            <p>浏览所有可申报政策，了解最新补贴动态</p>
-                            <span class="feature-tag">实时更新</span>
+                        <div class="feature-card" onclick="location.href='/api-docs#endpoints'">
+                            <div class="feature-icon">📊</div>
+                            <h3>多源聚合</h3>
+                            <p>一个 Query 自动跨多个政策数据源匹配，返回最相关的政策结果，省时省力。</p>
+                            <span class="feature-tag">多源聚合</span>
                         </div>
                     </div>
                 </section>
-
-                <!-- 旧版表单区域（保留但默认隐藏） -->
-                <section id="form-section" class="form-section hidden">
-                    <div class="step-indicator">
-                        <div class="step-dot active"></div>
-                        <div class="step-dot"></div>
-                        <div class="step-dot"></div>
-                    </div>
-                    
-                    <h2 class="form-title">企业信息诊断</h2>
-                    <p class="form-subtitle">填写以下信息，我们将为您智能匹配适合的政策</p>
-                    
-                    <form id="diagnosis-form">
-                        <!-- 步骤1：基本信息 -->
-                        <div id="step-1" class="form-group">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    企业名称 <span class="required">*</span>
-                                </label>
-                                <input type="text" id="company-name" class="form-input" 
-                                       placeholder="请输入企业全称"
-                                       oninput="state.formData.name = this.value; updateNextButtonState()">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    所在区域 <span class="required">*</span>
-                                </label>
-                                <div class="checkbox-group">
-                                    <div class="checkbox-item district-option" data-value="海珠" onclick="selectDistrict('海珠')">
-                                        <div class="checkbox-icon"></div>
-                                        <span>海珠区</span>
-                                    </div>
-                                    <div class="checkbox-item district-option" data-value="天河" onclick="selectDistrict('天河')">
-                                        <div class="checkbox-icon"></div>
-                                        <span>天河区</span>
-                                    </div>
-                                </div>
-                                <p class="form-hint">选择企业注册所在区域</p>
-                            </div>
+                <section class="pricing-section">
+                    <h2 class="features-title">透明计费</h2>
+                    <div class="pricing-grid">
+                        <div class="pricing-card">
+                            <div class="pricing-name">基础查询</div>
+                            <div class="pricing-price">¥0.1<span>/次</span></div>
+                            <p class="pricing-desc">适合简单的政策检索场景</p>
+                            <div class="pricing-feature">✓ 按次计费，无月费</div>
+                            <div class="pricing-feature">✓ 跨多数据源匹配</div>
+                            <div class="pricing-feature">✓ 返回匹配政策列表</div>
+                            <div class="pricing-feature">✓ 100次/分钟限流</div>
                         </div>
-                        
-                        <!-- 步骤2：经营信息 -->
-                        <div id="step-2" class="form-group">
-                            <div class="form-group">
-                                <label class="form-label">
-                                    所属行业 <span class="required">*</span>
-                                </label>
-                                <select id="industry" class="form-select" 
-                                        onchange="state.formData.industry = this.value; updateNextButtonState()">
-                                    <option value="">请选择行业</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">
-                                    营收规模 <span class="required">*</span>
-                                </label>
-                                <div class="checkbox-group">
-                                    <div class="checkbox-item revenue-option" data-value="小于500万" onclick="selectRevenue('小于500万')">
-                                        <div class="checkbox-icon"></div>
-                                        <span>小于500万</span>
-                                    </div>
-                                    <div class="checkbox-item revenue-option" data-value="500-2000万" onclick="selectRevenue('500-2000万')">
-                                        <div class="checkbox-icon"></div>
-                                        <span>500-2000万</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">成立年限</label>
-                                <select id="established-years" class="form-select"
-                                        onchange="state.formData.establishedYears = parseInt(this.value)">
-                                    <option value="1">1年以内</option>
-                                    <option value="2">1-3年</option>
-                                    <option value="4">3-5年</option>
-                                    <option value="6">5-10年</option>
-                                    <option value="11">10年以上</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">员工数量</label>
-                                <select id="employee-count" class="form-select">
-                                    <option value="5">5人以下</option>
-                                    <option value="10" selected>5-20人</option>
-                                    <option value="50">20-100人</option>
-                                    <option value="150">100-300人</option>
-                                    <option value="300">300人以上</option>
-                                </select>
-                            </div>
+                        <div class="pricing-card popular">
+                            <div class="pricing-name">高级查询</div>
+                            <div class="pricing-price">¥0.5<span>/次</span></div>
+                            <p class="pricing-desc">含 AI 智能解读与分析</p>
+                            <div class="pricing-feature">✓ AI 政策解读</div>
+                            <div class="pricing-feature">✓ 申报条件智能分析</div>
+                            <div class="pricing-feature">✓ 匹配度评分</div>
+                            <div class="pricing-feature">✓ 20次/分钟限流</div>
                         </div>
-                        
-                        <!-- 步骤3：资质信息 -->
-                        <div id="step-3" class="form-group">
-                            <div class="form-group">
-                                <label class="form-label">企业资质（可多选）</label>
-                                <div class="checkbox-group">
-                                    <div class="checkbox-item qualification-item" data-key="isHighTech" onclick="toggleQualification(this)">
-                                        <div class="checkbox-icon"></div>
-                                        <span>高新技术企业</span>
-                                    </div>
-                                    <div class="checkbox-item qualification-item" data-key="isSpecialized" onclick="toggleQualification(this)">
-                                        <div class="checkbox-icon"></div>
-                                        <span>专精特新企业</span>
-                                    </div>
-                                    <div class="checkbox-item qualification-item" data-key="hasIP" onclick="toggleQualification(this)">
-                                        <div class="checkbox-icon"></div>
-                                        <span>拥有知识产权</span>
-                                    </div>
-                                    <div class="checkbox-item qualification-item" data-key="hasVC" onclick="toggleQualification(this)">
-                                        <div class="checkbox-icon"></div>
-                                        <span>获得风险投资</span>
-                                    </div>
-                                </div>
-                                <p class="form-hint">选择企业已有的资质认证，可帮助匹配更多政策</p>
-                            </div>
-                        </div>
-                        
-                        <!-- 按钮组 -->
-                        <div class="btn-group">
-                            <button type="button" id="prev-btn" class="btn btn-secondary" style="display: none;" onclick="goToPrevStep()">
-                                <span>←</span>
-                                <span>上一步</span>
-                            </button>
-                            <button type="button" id="next-btn" class="btn btn-primary" disabled onclick="goToNextStep()">
-                                <span>下一步</span>
-                                <span>→</span>
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- 加载状态 -->
-                <section id="loading-section" class="form-section hidden">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <div class="loading-text">正在为您智能匹配政策，请稍候...</div>
                     </div>
                 </section>
-
-                <!-- 结果展示 -->
-                <section id="result-section" class="hidden">
-                    <div class="result-header">
-                        <h2 id="result-title" class="result-title"></h2>
-                        <p id="result-subtitle" class="result-subtitle"></p>
-                        <div class="result-summary">
-                            <div class="summary-badge highlight">
-                                <span>匹配政策</span>
-                                <span class="value" id="total-matches">0</span>
-                                <span>条</span>
-                            </div>
-                            <div class="summary-badge">
-                                <span>重点推荐</span>
-                                <span class="value" id="highly-recommended">0</span>
-                                <span>条</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="policy-list" class="policy-list"></div>
-                    
-                    <div class="btn-group" style="justify-content: center; margin-top: 32px;">
-                        <button class="btn btn-secondary" onclick="resetAndStartOver()">
-                            <span>←</span>
-                            <span>重新诊断</span>
-                        </button>
-                        <button class="btn btn-primary" onclick="goHome()">
-                            <span>🏠</span>
-                            <span>返回首页</span>
-                        </button>
-                    </div>
+                <section class="trial-section">
+                    <h2 class="trial-title">🆓 限时免费试用</h2>
+                    <p class="trial-subtitle">填写企业信息，获取免费政策匹配诊断</p>
+                    <a href="/ai-chat" class="trial-btn">开始免费诊断</a>
                 </section>
             </div>
         </main>
-
-        <!-- 底部 -->
         <footer class="footer">
             <div class="container">
                 <div class="footer-content">
-                    <div class="footer-brand">
-                        开源大叔 · 政策通 <span>PolicyPilot</span> · 启觉科技
-                    </div>
-                    <div class="footer-text">
-                        © 2024-2026 政策通 · AI政策补贴自动匹配与申报辅助工具
-                    </div>
+                    <div class="footer-brand">开源大叔 · 政策通 Token API · 启觉科技</div>
+                    <div class="footer-text">© 2024-2026 政策通 · 政策数据Token化基础设施</div>
                 </div>
             </div>
         </footer>
     </div>
-
-    <!-- 登录/注册模态框 -->
-    <div id="login-modal" class="modal hidden">
-        <div class="modal-overlay" onclick="closeLoginModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="login-modal-title">登录 / 注册</h3>
-                <button class="modal-close" onclick="closeLoginModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">手机号 <span class="required">*</span></label>
-                    <input type="tel" id="login-phone" class="form-input" 
-                           placeholder="请输入11位手机号" maxlength="11">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">验证码 <span class="required">*</span></label>
-                    <div class="verify-code-row">
-                        <input type="text" id="login-code" class="form-input" 
-                               placeholder="请输入验证码" maxlength="6">
-                        <button type="button" id="send-code-btn" class="btn btn-outline btn-sm" 
-                                onclick="sendVerifyCode()" disabled>
-                            发送验证码
-                        </button>
-                    </div>
-                    <p class="form-hint">测试阶段验证码填 <strong>123456</strong> 即可</p>
-                </div>
-                <div id="login-error" class="error-message hidden"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeLoginModal()">取消</button>
-                <button class="btn btn-primary" onclick="doLogin()">
-                    <span>登录 / 注册</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 申报材料生成模态框 -->
-    <div id="material-modal" class="modal modal-lg hidden">
-        <div class="modal-overlay" onclick="closeMaterialModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>📄 生成申报材料</h3>
-                <button class="modal-close" onclick="closeMaterialModal()">×</button>
-            </div>
-            <div class="modal-body" id="material-modal-body"></div>
-        </div>
-    </div>
-
-    <!-- 材料预览模态框 -->
-    <div id="preview-modal" class="modal modal-xl hidden">
-        <div class="modal-overlay" onclick="closePreviewModal()"></div>
-        <div class="modal-content modal-preview">
-            <div class="modal-header">
-                <h3>📋 申报材料预览</h3>
-                <button class="modal-close" onclick="closePreviewModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <iframe id="preview-frame" class="preview-frame"></iframe>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closePreviewModal()">关闭</button>
-                <button class="btn btn-primary" onclick="downloadMaterial()">
-                    <span>💾</span>
-                    <span>下载完整材料包</span>
-                    <span class="price-tag">¥299/项</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 加载遮罩 -->
-    <div id="loading-overlay" class="loading-overlay hidden">
-        <div class="loading">
-            <div class="spinner"></div>
-            <div class="loading-text">加载中...</div>
-        </div>
-    </div>
-
-    <style>
-        /* AI Hero 样式 */
-        .ai-hero {
-            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #10B981 100%);
-            border-radius: var(--radius-xl);
-            padding: 48px 40px;
-            margin-bottom: 32px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .ai-hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        
-        .ai-hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 700px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        
-        .ai-hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 6px 16px;
-            border-radius: var(--radius-full);
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        
-        .ai-hero-title {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            line-height: 1.3;
-        }
-        
-        .ai-hero-desc {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 32px;
-            line-height: 1.8;
-        }
-        
-        .ai-hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-top: 32px;
-        }
-        
-        .ai-hero-stats .stat-item {
-            text-align: center;
-        }
-        
-        .ai-hero-stats .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: white;
-        }
-        
-        .ai-hero-stats .stat-label {
-            font-size: 14px;
-            opacity: 0.8;
-            color: white;
-        }
-        
-        /* 快速对话框 */
-        .quick-chat-box {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            max-width: 500px;
-            margin: 0 auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-        
-        .quick-chat-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            color: var(--gray-800);
-            margin-bottom: 16px;
-            font-size: 16px;
-        }
-        
-        .quick-chat-examples {
-            margin-bottom: 20px;
-        }
-        
-        .quick-chat-tip {
-            font-size: 13px;
-            color: var(--gray-500);
-            margin-bottom: 12px;
-            text-align: left;
-        }
-        
-        .quick-example-chips {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .quick-example-chip {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: var(--radius-md);
-            padding: 10px 16px;
-            font-size: 13px;
-            color: var(--gray-700);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            text-align: left;
-        }
-        
-        .quick-example-chip:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        .quick-chat-start-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 14px 24px;
-            border-radius: var(--radius-lg);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            text-decoration: none;
-        }
-        
-        .quick-chat-start-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-        }
-        
-        /* 功能卡片 */
-        .feature-section {
-            margin-bottom: 40px;
-        }
-        
-        .feature-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-        
-        .feature-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            border: 1px solid var(--gray-100);
-            position: relative;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary);
-        }
-        
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--gray-50);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            margin-bottom: 16px;
-        }
-        
-        .feature-card h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--gray-800);
-        }
-        
-        .feature-card p {
-            font-size: 14px;
-            color: var(--gray-500);
-            margin-bottom: 12px;
-        }
-        
-        .feature-tag {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: var(--radius-full);
-        }
-        
-        .nav-link-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white !important;
-            border-radius: var(--radius-full);
-            padding: 6px 16px !important;
-        }
-        
-        .nav-link-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        @media (max-width: 768px) {
-            .ai-hero {
-                padding: 32px 20px;
-            }
-            
-            .ai-hero-title {
-                font-size: 26px;
-            }
-            
-            .ai-hero-stats {
-                gap: 24px;
-            }
-            
-            .ai-hero-stats .stat-value {
-                font-size: 22px;
-            }
-            
-            .feature-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .header-nav {
-                gap: 8px !important;
-            }
-            
-            .nav-link {
-                font-size: 12px !important;
-                padding: 4px 8px !important;
-            }
-        }
-    </style>
-
-    <script src="/static/js/app.js"></script>
     <script>
-        // 检查URL参数
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const policyId = urlParams.get('policy');
-            const aiQuery = urlParams.get('q');
-            
-            if (policyId) {
-                viewPolicyDetail(policyId);
-            } else {
-                initForm();
-            }
-            
-            // 如果有AI查询，自动跳转到对话页面
-            if (aiQuery) {
-                location.href = '/ai-chat?q=' + encodeURIComponent(aiQuery);
-            }
-        });
-        
-        // 更新政策数量显示
         fetch('/api/policies/count')
             .then(r => r.json())
             .then(d => {
-                document.getElementById('policy-count').textContent = (d.count || 213) + '+';
-            })
-            .catch(() => {});
+                const el = document.getElementById('policy-count');
+                if (el) el.textContent = (d.count || 213) + '+';
+            }).catch(() => {});
     </script>
 </body>
 </html>
