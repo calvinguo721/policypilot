@@ -48,3 +48,12 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+
+# 中间数据文件（仅保留主数据集policies.json）
+data/policies_v2.json
+data/policies_v2_backup.json
+data/policies_expanded.json
+data/policy_pilot.db
+
+# 配置中的敏感信息
+config/secrets*

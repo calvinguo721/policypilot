@@ -18,7 +18,10 @@
                         <div class="logo-text">政策通 <span>PolicyPilot</span></div>
                     </a>
                     <div class="header-nav">
-                        <a href="/" class="nav-link">首页</a>
+                        <a href="/ai-chat" class="nav-link nav-link-primary">
+                            🤖 AI智能问答
+                        </a>
+                        <a href="/" class="nav-link">政策库</a>
                         <a href="/my-results" id="my-results-link" class="nav-link hidden">我的诊断</a>
                         <button id="login-btn" class="btn btn-outline btn-sm" onclick="showLoginModal()">
                             <span>👤</span>
@@ -37,42 +40,84 @@
         <main class="main">
             <div class="container">
                 
-                <!-- 英雄区 -->
-                <section id="hero-section" class="hero">
-                    <div class="hero-badge">
-                        <span>🎯</span>
-                        <span>智能匹配 · 精准申报</span>
-                    </div>
-                    <h1 class="hero-title">
-                        让您的企业<br class="mobile-break"><span>不错过任何一笔</span><br class="mobile-break"><span class="highlight-green">政策补贴</span>
-                    </h1>
-                    <p class="hero-desc">
-                        基于AI智能分析，一键匹配广州海珠区、天河区最新政策补贴，
-                        精准定位适合您的申报项目，大幅提升申报成功率。
-                    </p>
-                    
-                    <button class="btn btn-primary btn-lg" onclick="startDiagnosis()">
-                        <span>🚀</span>
-                        <span>开始智能诊断</span>
-                    </button>
-                    
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">40+</div>
-                            <div class="stat-label">精选政策</div>
+                <!-- AI对话核心入口 - Hero区 -->
+                <section class="hero ai-hero">
+                    <div class="ai-hero-content">
+                        <div class="ai-hero-badge">
+                            <span>🎯</span>
+                            <span>AI政策顾问 · 申报导航仪</span>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">2区</div>
-                            <div class="stat-label">覆盖区域</div>
+                        <h1 class="ai-hero-title">
+                            告诉政策通您的情况<br class="mobile-break">
+                            <span class="highlight-green">AI帮您找政策</span>
+                        </h1>
+                        <p class="ai-hero-desc">
+                            基于AI智能分析您的企业情况，自动匹配最适合的政策补贴，
+                            精准判断申报条件，大幅提升申报成功率。
+                        </p>
+                        
+                        <!-- 嵌入式对话入口 -->
+                        <div class="quick-chat-box">
+                            <div class="quick-chat-header">
+                                <span>🤖</span>
+                                <span>政策通 AI</span>
+                            </div>
+                            <div class="quick-chat-examples">
+                                <p class="quick-chat-tip">试试这样问我：</p>
+                                <div class="quick-example-chips">
+                                    <button class="quick-example-chip" onclick="location.href='/ai-chat?q=我是海珠区的AI创业公司'">💡 我是海珠区的AI创业公司</button>
+                                    <button class="quick-example-chip" onclick="location.href='/ai-chat?q=天河区软件企业有什么补贴'">💡 天河区软件企业补贴</button>
+                                    <button class="quick-example-chip" onclick="location.href='/ai-chat?q=专精特新企业怎么申报'">💡 专精特新申报条件</button>
+                                </div>
+                            </div>
+                            <a href="/ai-chat" class="quick-chat-start-btn">
+                                开始AI对话
+                                <span>→</span>
+                            </a>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-value">AI</div>
-                            <div class="stat-label">智能匹配</div>
+                        
+                        <div class="ai-hero-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="policy-count">213+</div>
+                                <div class="stat-label">精选政策</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">广州+深圳</div>
+                                <div class="stat-label">覆盖区域</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">AI</div>
+                                <div class="stat-label">智能解读</div>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 诊断表单 -->
+                <!-- 功能入口卡片 -->
+                <section class="feature-section">
+                    <div class="feature-cards">
+                        <div class="feature-card" onclick="location.href='/ai-chat'">
+                            <div class="feature-icon">🤖</div>
+                            <h3>AI政策顾问</h3>
+                            <p>用自然语言描述您的情况，AI帮您分析适合的政策</p>
+                            <span class="feature-tag">智能匹配</span>
+                        </div>
+                        <div class="feature-card" onclick="location.href='/#form-section'">
+                            <div class="feature-icon">📋</div>
+                            <h3>企业诊断</h3>
+                            <p>填写企业信息，获取精准政策匹配报告</p>
+                            <span class="feature-tag">全面分析</span>
+                        </div>
+                        <div class="feature-card" onclick="location.href='/policy.html'">
+                            <div class="feature-icon">📚</div>
+                            <h3>政策库</h3>
+                            <p>浏览所有可申报政策，了解最新补贴动态</p>
+                            <span class="feature-tag">实时更新</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 旧版表单区域（保留但默认隐藏） -->
                 <section id="form-section" class="form-section hidden">
                     <div class="step-indicator">
                         <div class="step-dot active"></div>
@@ -138,26 +183,18 @@
                                         <div class="checkbox-icon"></div>
                                         <span>500-2000万</span>
                                     </div>
-                                    <div class="checkbox-item revenue-option" data-value="2000万-1亿" onclick="selectRevenue('2000万-1亿')">
-                                        <div class="checkbox-icon"></div>
-                                        <span>2000万-1亿</span>
-                                    </div>
-                                    <div class="checkbox-item revenue-option" data-value="1亿以上" onclick="selectRevenue('1亿以上')">
-                                        <div class="checkbox-icon"></div>
-                                        <span>1亿以上</span>
-                                    </div>
                                 </div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label">成立年限</label>
-                                <select id="established-years" class="form-select">
-                                    <option value="1">1年以下</option>
-                                    <option value="2">1-2年</option>
-                                    <option value="3">2-3年</option>
-                                    <option value="5" selected>3-5年</option>
-                                    <option value="8">5-8年</option>
-                                    <option value="10">8年以上</option>
+                                <select id="established-years" class="form-select"
+                                        onchange="state.formData.establishedYears = parseInt(this.value)">
+                                    <option value="1">1年以内</option>
+                                    <option value="2">1-3年</option>
+                                    <option value="4">3-5年</option>
+                                    <option value="6">5-10年</option>
+                                    <option value="11">10年以上</option>
                                 </select>
                             </div>
                             
@@ -240,9 +277,7 @@
                         </div>
                     </div>
                     
-                    <div id="policy-list" class="policy-list">
-                        <!-- 政策卡片将动态插入 -->
-                    </div>
+                    <div id="policy-list" class="policy-list"></div>
                     
                     <div class="btn-group" style="justify-content: center; margin-top: 32px;">
                         <button class="btn btn-secondary" onclick="resetAndStartOver()">
@@ -263,7 +298,7 @@
             <div class="container">
                 <div class="footer-content">
                     <div class="footer-brand">
-                        政策通 <span>PolicyPilot</span> · 开源大叔
+                        开源大叔 · 政策通 <span>PolicyPilot</span> · 启觉科技
                     </div>
                     <div class="footer-text">
                         © 2024-2026 政策通 · AI政策补贴自动匹配与申报辅助工具
@@ -318,9 +353,7 @@
                 <h3>📄 生成申报材料</h3>
                 <button class="modal-close" onclick="closeMaterialModal()">×</button>
             </div>
-            <div class="modal-body" id="material-modal-body">
-                <!-- 动态内容 -->
-            </div>
+            <div class="modal-body" id="material-modal-body"></div>
         </div>
     </div>
 
@@ -354,6 +387,293 @@
         </div>
     </div>
 
+    <style>
+        /* AI Hero 样式 */
+        .ai-hero {
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 50%, #10B981 100%);
+            border-radius: var(--radius-xl);
+            padding: 48px 40px;
+            margin-bottom: 32px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ai-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .ai-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .ai-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .ai-hero-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        
+        .ai-hero-desc {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 32px;
+            line-height: 1.8;
+        }
+        
+        .ai-hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 32px;
+        }
+        
+        .ai-hero-stats .stat-item {
+            text-align: center;
+        }
+        
+        .ai-hero-stats .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .ai-hero-stats .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+            color: white;
+        }
+        
+        /* 快速对话框 */
+        .quick-chat-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .quick-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+        
+        .quick-chat-examples {
+            margin-bottom: 20px;
+        }
+        
+        .quick-chat-tip {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        
+        .quick-example-chips {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .quick-example-chip {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: left;
+        }
+        
+        .quick-example-chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .quick-chat-start-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 14px 24px;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+        
+        .quick-chat-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* 功能卡片 */
+        .feature-section {
+            margin-bottom: 40px;
+        }
+        
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--gray-100);
+            position: relative;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-800);
+        }
+        
+        .feature-card p {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 12px;
+        }
+        
+        .feature-tag {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
+        
+        .nav-link-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white !important;
+            border-radius: var(--radius-full);
+            padding: 6px 16px !important;
+        }
+        
+        .nav-link-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 768px) {
+            .ai-hero {
+                padding: 32px 20px;
+            }
+            
+            .ai-hero-title {
+                font-size: 26px;
+            }
+            
+            .ai-hero-stats {
+                gap: 24px;
+            }
+            
+            .ai-hero-stats .stat-value {
+                font-size: 22px;
+            }
+            
+            .feature-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-nav {
+                gap: 8px !important;
+            }
+            
+            .nav-link {
+                font-size: 12px !important;
+                padding: 4px 8px !important;
+            }
+        }
+    </style>
+
     <script src="/static/js/app.js"></script>
+    <script>
+        // 检查URL参数
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const policyId = urlParams.get('policy');
+            const aiQuery = urlParams.get('q');
+            
+            if (policyId) {
+                viewPolicyDetail(policyId);
+            } else {
+                initForm();
+            }
+            
+            // 如果有AI查询，自动跳转到对话页面
+            if (aiQuery) {
+                location.href = '/ai-chat?q=' + encodeURIComponent(aiQuery);
+            }
+        });
+        
+        // 更新政策数量显示
+        fetch('/api/policies/count')
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('policy-count').textContent = (d.count || 213) + '+';
+            })
+            .catch(() => {});
+    </script>
 </body>
 </html>

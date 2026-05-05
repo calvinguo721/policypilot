@@ -1,0 +1,35 @@
+{
+  "partners": {
+    "demo_partner": {
+      "name": "演示合作伙伴",
+      "status": "active",
+      "brand_name": "政策通演示版",
+      "brand_footer": "© 2024 演示合作伙伴",
+      "logo_url": "/static/demo-logo.png",
+      "features": {
+        "match": true,
+        "material_generation": true,
+        "history": true,
+        "export": true
+      },
+      "limits": {
+        "daily_requests": 1000,
+        "monthly_requests": 30000
+      },
+      "created_at": "2024-05-01"
+    }
+  },
+  "default_config": {
+    "rate_limit": {
+      "requests_per_minute": 60,
+      "requests_per_day": 10000
+    },
+    "features": {
+      "match": true,
+      "material_generation": true,
+      "history": true,
+      "export": false
+    }
+  },
+  "note": "新增合作伙伴时，在此添加配置。X-Partner-ID 需与此处 partner_id 一致"
+}

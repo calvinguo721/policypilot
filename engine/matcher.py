@@ -85,14 +85,27 @@ class PolicyMatcher:
     def _check_region_match(self, company_district: str, policy: Policy) -> bool:
         """检查区域是否匹配"""
         policy_district = policy.district
-        # 如果是省级或国家级政策（广东省），则全市企业都适用
+        # 如果用户没指定区域，所有政策都适用
+        if not company_district:
+            return True
+        # 如果是国家级政策，所有企业都适用
+        if "国家级" in policy_district or "中央" in policy_district:
+            return True
+        # 如果是省级政策（如广东省），只对该省企业适用
         if "广东省" in policy_district or "省级" in policy_district:
-            return True
-        # 如果是广州市级政策，则全市企业都适用
+            if "广东" in company_district or "广州" in company_district or "深圳" in company_district:
+                return True
+            return False
+        # 如果是广州市级政策，只对广州企业适用
         if "广州市" in policy_district:
-            return True
+            if "广州" in company_district or any(d in company_district for d in ["海珠","天河","白云","番禺","越秀","荔湾","南沙","黄埔","花都","增城","从化"]):
+                return True
+            return False
         # 如果企业所在区在政策适用区域
         if company_district in policy_district:
+            return True
+        # 如果政策区在企业区域内
+        if policy_district in company_district:
             return True
         return False
 
