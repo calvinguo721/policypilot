@@ -195,10 +195,62 @@
             color: #38bdf8;
             margin-bottom: 24px;
         }
+        .sdk-install {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .sdk-install-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #34d399;
+            margin-bottom: 8px;
+        }
+        .sdk-install code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .error-card {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .error-code {
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #f87171;
+            margin-bottom: 4px;
+        }
+        .error-msg { font-size: 13px; color: #fca5a5; margin-bottom: 8px; }
+        .error-solution { font-size: 12px; color: #94a3b8; }
+        .error-solution strong { color: #38bdf8; }
+        .rate-limit-info {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        .rate-item {
+            background: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            min-width: 150px;
+        }
+        .rate-item-label { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+        .rate-item-value { font-size: 18px; font-weight: 700; color: #a78bfa; }
         @media (max-width: 768px) {
             .docs-title { font-size: 28px; }
             .docs-section { padding: 20px; }
             .endpoint-header { flex-wrap: wrap; }
+            .rate-limit-info { flex-direction: column; }
         }
     </style>
 </head>
@@ -225,51 +277,154 @@
                 
                 <div class="docs-header">
                     <h1 class="docs-title">📖 API 文档</h1>
-                    <p class="docs-subtitle">完整的政策通 Token API 接入指南</p>
+                    <p class="docs-subtitle">完整的政策通 Token API 接入指南，5分钟快速接入</p>
                 </div>
-
-                <!-- 基础URL -->
-                <div class="base-url">
-                    Base URL: <strong>http://localhost:8002</strong>
-                </div>
-
-                <!-- 认证方式 -->
-                <section class="docs-section" id="auth">
-                    <h2 class="docs-section-title"><span class="icon">🔐</span> 认证方式</h2>
-                    <p style="color: #94a3b8; margin-bottom: 16px;">
-                        所有 API 请求需要在 Header 中携带 API Key 进行认证：
-                    </p>
-                    <div class="code-block">
-                        <div class="code-block-title">Headers</div>
-                        <pre>X-API-Key: your_api_key_here</pre>
-                    </div>
-                </section>
 
                 <!-- 快速开始 -->
                 <section class="docs-section" id="quick-start">
                     <h2 class="docs-section-title"><span class="icon">🚀</span> 快速开始</h2>
+                    <div class="sdk-install">
+                        <div class="sdk-install-title">📦 Python SDK 安装</div>
+                        <p style="font-size: 14px; color: #94a3b8; margin-bottom: 12px;">推荐使用 pip 安装 SDK：</p>
+                        <code>pip install policypilot-sdk</code>
+                    </div>
                     <div class="step-list">
                         <div class="step-item">
                             <div class="step-number">1</div>
                             <div class="step-content">
                                 <h4>注册获取 API Key</h4>
-                                <p>调用注册接口，获取你的专属 API Key。</p>
+                                <p>访问控制台页面，填写企业信息完成注册，即可获得专属 API Key。</p>
                             </div>
                         </div>
                         <div class="step-item">
                             <div class="step-number">2</div>
                             <div class="step-content">
-                                <h4>充值账户</h4>
-                                <p>通过充值接口为账户充值，基础查询 0.1 元/次，高级查询 0.5 元/次。</p>
+                                <h4>安装 SDK</h4>
+                                <p>使用 pip 安装 Python SDK：<code>pip install policypilot-sdk</code></p>
                             </div>
                         </div>
                         <div class="step-item">
                             <div class="step-number">3</div>
                             <div class="step-content">
-                                <h4>调用查询 API</h4>
-                                <p>使用你的 API Key 调用查询接口，开始享受政策数据服务。</p>
+                                <h4>初始化客户端</h4>
+                                <p>用您的 API Key 初始化客户端，开始调用接口。</p>
                             </div>
                         </div>
+                        <div class="step-item">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>调用 API</h4>
+                                <p>使用 SDK 提供的方法查询政策数据，或直接调用 REST API。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Python SDK 示例 -->
+                <section class="docs-section" id="sdk">
+                    <h2 class="docs-section-title"><span class="icon">🐍</span> Python SDK 使用示例</h2>
+                    
+                    <div class="code-block">
+                        <div class="code-block-title">1. 安装与初始化</div>
+                        <pre>pip install policypilot-sdk
+
+from policypilot import PolicyPilotClient
+
+# 初始化客户端
+client = PolicyPilotClient(api_key="your_api_key_here")</pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-block-title">2. 基础政策查询 (0.1元/次)</div>
+                        <pre># 按区域和行业查询
+result = client.query(
+    district="海珠区",
+    industry="人工智能",
+    keywords=["补贴", "创业"]
+)
+
+for policy in result.policies:
+    print(f"政策: {policy.name}")
+    print(f"匹配度: {policy.score}")
+    print(f"金额: {policy.amount}")</pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-block-title">3. 高级政策查询 (0.5元/次) - 含AI智能解读</div>
+                        <pre># 自然语言查询，AI自动匹配
+result = client.query_advanced(
+    query="我们是海珠区的AI创业公司，有什么补贴可以申请？",
+    company_info={
+        "name": "测试公司",
+        "employees": 20,
+        "established_years": 2
+    }
+)
+
+print(result.response)  # AI解读结果
+print(result.matched_policies)  # 匹配的政策列表</pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-block-title">4. 账户管理</div>
+                        <pre># 查询余额
+balance = client.get_balance()
+print(f"当前余额: {balance} 元")
+
+# 查询用量
+usage = client.get_usage(days=30)
+print(f"本月查询: {usage.month_count} 次")
+
+# 充值
+client.recharge(amount=100)</pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-block-title">5. 完整示例：企业政策匹配</div>
+                        <pre>from policypilot import PolicyPilotClient
+
+client = PolicyPilotClient(api_key="your_api_key")
+
+# 企业信息
+company = {
+    "name": "广州智创科技有限公司",
+    "district": "海珠区",
+    "industry": "软件和信息技术服务业",
+    "employees": 50,
+    "established_years": 3,
+    "has_ip": True,
+    "is_high_tech": True
+}
+
+# 高级查询
+result = client.query_advanced(
+    query="我们公司能申请哪些政府补贴？",
+    company_info=company
+)
+
+print("=== 匹配的政策 ===")
+for policy in result.matched_policies:
+    print(f"• {policy.name} (匹配度: {policy.score}%)")
+    print(f"  金额: {policy.amount}")
+    print(f"  链接: {policy.url}")
+    print()</pre>
+                    </div>
+                </section>
+
+                <!-- Base URL -->
+                <div class="base-url">
+                    📡 Base URL: <strong>http://localhost:8002</strong>
+                </div>
+
+                <!-- 认证说明 -->
+                <section class="docs-section" id="authentication">
+                    <h2 class="docs-section-title"><span class="icon">🔐</span> 认证方式</h2>
+                    <p style="font-size: 14px; color: #94a3b8; margin-bottom: 16px;">
+                        所有 API 请求需要在 Header 中携带 API Key 进行认证：
+                    </p>
+                    <div class="code-block">
+                        <div class="code-block-title">请求 Header</div>
+                        <pre>X-API-Key: your_api_key_here</pre>
                     </div>
                 </section>
 
@@ -290,24 +445,24 @@
                                 <td>基础查询</td>
                                 <td class="price">¥0.1/次</td>
                                 <td>100次/分钟</td>
-                                <td><span class="tag tag-recommend">推荐</span></td>
+                                <td>按条件筛选政策列表</td>
                             </tr>
                             <tr>
-                                <td>高级查询</td>
+                                <td>高级查询 <span class="tag tag-recommend">推荐</span></td>
                                 <td class="price">¥0.5/次</td>
                                 <td>20次/分钟</td>
-                                <td>含AI智能解读</td>
+                                <td>含AI智能解读与分析</td>
                             </tr>
                         </tbody>
                     </table>
-                    <p style="color: #64748b; font-size: 13px; margin-top: 16px;">
-                        ⚠️ 预充值模式：账户余额 = 已充值 - 已消费。每次查询前检查余额是否充足。
+                    <p style="font-size: 13px; color: #64748b; margin-top: 16px;">
+                        💡 提示：高级查询包含基础查询的全部功能，并额外提供 AI 政策解读、企业匹配度分析、申报条件智能匹配等增值服务。
                     </p>
                 </section>
 
                 <!-- API 端点 -->
                 <section class="docs-section" id="endpoints">
-                    <h2 class="docs-section-title"><span class="icon">🔌</span> API 端点</h2>
+                    <h2 class="docs-section-title"><span class="icon">📡</span> API 端点</h2>
 
                     <!-- 注册 -->
                     <div class="endpoint-card">
@@ -315,7 +470,7 @@
                             <span class="method-badge post">POST</span>
                             <span class="endpoint-path">/api/token/register</span>
                         </div>
-                        <div class="endpoint-desc">注册新客户，获取 API Key</div>
+                        <div class="endpoint-desc">注册新账户，获取 API Key</div>
                         <table class="param-table">
                             <thead>
                                 <tr><th>参数</th><th>类型</th><th>说明</th></tr>
@@ -334,15 +489,14 @@
   -d '{"company_name": "测试公司", "phone": "13800138000"}'</pre>
                         </div>
                         <div class="code-block">
-                            <div class="code-block-title">请求示例 (Python)</div>
-                            <pre>import requests
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>from policypilot import PolicyPilotClient
 
-resp = requests.post("http://localhost:8002/api/token/register", json={
-    "company_name": "测试公司",
-    "phone": "13800138000"
-})
-data = resp.json()
-api_key = data["api_key"]</pre>
+client = PolicyPilotClient.register(
+    company_name="测试公司",
+    phone="13800138000"
+)
+print(client.api_key)</pre>
                         </div>
                     </div>
 
@@ -369,14 +523,9 @@ api_key = data["api_key"]</pre>
   -d '{"amount": 100}'</pre>
                         </div>
                         <div class="code-block">
-                            <div class="code-block-title">请求示例 (Python)</div>
-                            <pre>import requests
-
-resp = requests.post("http://localhost:8002/api/token/recharge",
-    headers={"X-API-Key": "your_api_key"},
-    json={"amount": 100}
-)
-print(resp.json())</pre>
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>client.recharge(amount=100)
+print(f"充值成功，当前余额: {client.get_balance()}")</pre>
                         </div>
                     </div>
 
@@ -406,18 +555,14 @@ print(resp.json())</pre>
   -d '{"district": "海珠区", "industry": "人工智能"}'</pre>
                         </div>
                         <div class="code-block">
-                            <div class="code-block-title">请求示例 (Python)</div>
-                            <pre>import requests
-
-resp = requests.post("http://localhost:8002/api/token/query",
-    headers={"X-API-Key": "your_api_key"},
-    json={
-        "district": "海珠区",
-        "industry": "人工智能",
-        "keywords": ["补贴", "创业"]
-    }
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>result = client.query(
+    district="海珠区",
+    industry="人工智能",
+    keywords=["补贴", "创业"]
 )
-policies = resp.json()["data"]["policies"]</pre>
+for policy in result.policies:
+    print(policy.name, policy.amount)</pre>
                         </div>
                     </div>
 
@@ -445,18 +590,12 @@ policies = resp.json()["data"]["policies"]</pre>
   -d '{"query": "我们是海珠区的AI创业公司，有什么补贴可以申请？"}'</pre>
                         </div>
                         <div class="code-block">
-                            <div class="code-block-title">请求示例 (Python)</div>
-                            <pre>import requests
-
-resp = requests.post("http://localhost:8002/api/token/query/advanced",
-    headers={"X-API-Key": "your_api_key"},
-    json={
-        "query": "我们是海珠区的AI创业公司，有什么补贴可以申请？",
-        "company_info": {"name": "测试公司", "employees": 20}
-    }
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>result = client.query_advanced(
+    query="我们是海珠区的AI创业公司，有什么补贴可以申请？",
+    company_info={"name": "测试公司", "employees": 20}
 )
-result = resp.json()
-print(result["data"]["response"])</pre>
+print(result.response)  # AI解读结果</pre>
                         </div>
                     </div>
 
@@ -480,6 +619,11 @@ print(result["data"]["response"])</pre>
   "currency": "CNY"
 }</pre>
                         </div>
+                        <div class="code-block">
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>balance = client.get_balance()
+print(f"当前余额: {balance} 元")</pre>
+                        </div>
                     </div>
 
                     <!-- 用量统计 -->
@@ -502,6 +646,12 @@ print(result["data"]["response"])</pre>
                             <pre>curl "http://localhost:8002/api/token/usage?days=7" \
   -H "X-API-Key: your_api_key"</pre>
                         </div>
+                        <div class="code-block">
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>usage = client.get_usage(days=7)
+print(f"今日查询: {usage.today_count}")
+print(f"本月查询: {usage.month_count}")</pre>
+                        </div>
                     </div>
 
                     <!-- 账单 -->
@@ -521,6 +671,12 @@ print(result["data"]["response"])</pre>
     {"date": "2024-01-15", "type": "advanced_query", "amount": -0.5}
   ]
 }</pre>
+                        </div>
+                        <div class="code-block">
+                            <div class="code-block-title">Python SDK</div>
+                            <pre>bills = client.get_bills()
+for bill in bills:
+    print(f"{bill.date}: {bill.type} {bill.amount}")</pre>
                         </div>
                     </div>
 
@@ -544,20 +700,140 @@ print(result["data"]["response"])</pre>
 
                 </section>
 
+                <!-- 限流说明 -->
+                <section class="docs-section" id="rate-limit">
+                    <h2 class="docs-section-title"><span class="icon">⚡</span> 限流说明</h2>
+                    <p style="font-size: 14px; color: #94a3b8; margin-bottom: 16px;">
+                        为保障服务稳定性，我们对不同类型的 API 请求设置了频率限制：
+                    </p>
+                    <div class="rate-limit-info">
+                        <div class="rate-item">
+                            <div class="rate-item-label">基础查询</div>
+                            <div class="rate-item-value">100次/分钟</div>
+                        </div>
+                        <div class="rate-item">
+                            <div class="rate-item-label">高级查询</div>
+                            <div class="rate-item-value">20次/分钟</div>
+                        </div>
+                        <div class="rate-item">
+                            <div class="rate-item-label">其他接口</div>
+                            <div class="rate-item-value">60次/分钟</div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- 错误码 -->
                 <section class="docs-section" id="errors">
-                    <h2 class="docs-section-title"><span class="icon">⚠️</span> 错误码</h2>
-                    <table class="param-table">
-                        <thead>
-                            <tr><th>错误码</th><th>说明</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td class="param-name">401</td><td>API Key 无效或已过期</td></tr>
-                            <tr><td class="param-name">402</td><td>余额不足</td></tr>
-                            <tr><td class="param-name">429</td><td>请求过于频繁，请降速</td></tr>
-                            <tr><td class="param-name">500</td><td>服务端错误，请稍后重试</td></tr>
-                        </tbody>
-                    </table>
+                    <h2 class="docs-section-title"><span class="icon">⚠️</span> 错误码说明</h2>
+                    <p style="font-size: 14px; color: #94a3b8; margin-bottom: 20px;">
+                        API 返回错误时，请根据错误码进行相应处理。以下是常见的 HTTP 状态码及业务错误码：
+                    </p>
+
+                    <div class="error-card">
+                        <div class="error-code">401 Unauthorized</div>
+                        <div class="error-msg">API Key 无效或已过期</div>
+                        <div class="error-solution">
+                            <strong>解决方案：</strong>请检查请求 Header 中的 X-API-Key 是否正确，或前往控制台重新获取 API Key。
+                        </div>
+                    </div>
+
+                    <div class="error-card">
+                        <div class="error-code">402 Payment Required</div>
+                        <div class="error-msg">余额不足，无法完成请求</div>
+                        <div class="error-solution">
+                            <strong>解决方案：</strong>请前往控制台充值，基础查询需要 0.1 元余额，高级查询需要 0.5 元余额。
+                            <br><a href="/console" style="color: #38bdf8;">→ 立即充值</a>
+                        </div>
+                    </div>
+
+                    <div class="error-card">
+                        <div class="error-code">429 Too Many Requests</div>
+                        <div class="error-msg">请求过于频繁，已触发限流</div>
+                        <div class="error-solution">
+                            <strong>解决方案：</strong>请降低请求频率，基础查询限流 100次/分钟，高级查询限流 20次/分钟。
+                            <br>建议在客户端实现指数退避重试机制。
+                        </div>
+                    </div>
+
+                    <div class="error-card">
+                        <div class="error-code">500 Internal Server Error</div>
+                        <div class="error-msg">服务端内部错误</div>
+                        <div class="error-solution">
+                            <strong>解决方案：</strong>可能是服务端临时故障，请稍后（建议 30 秒后）重试。
+                            <br>如果问题持续存在，请联系技术支持。
+                        </div>
+                    </div>
+
+                    <div class="error-card">
+                        <div class="error-code">503 Service Unavailable</div>
+                        <div class="error-msg">服务暂时不可用</div>
+                        <div class="error-solution">
+                            <strong>解决方案：</strong>可能是例行维护或突发流量，请稍后重试。
+                        </div>
+                    </div>
+
+                    <div class="code-block" style="margin-top: 20px;">
+                        <div class="code-block-title">Python SDK 错误处理示例</div>
+                        <pre>from policypilot import PolicyPilotClient, PolicyPilotError
+
+client = PolicyPilotClient(api_key="your_api_key")
+
+try:
+    result = client.query_advanced(query="有什么补贴可以申请？")
+except PolicyPilotError as e:
+    if e.code == 401:
+        print("API Key 无效，请检查")
+    elif e.code == 402:
+        print("余额不足，请充值")
+        # 可以引导用户打开充值页面
+        import webbrowser
+        webbrowser.open("/console")
+    elif e.code == 429:
+        print("请求过于频繁，请稍后重试")
+    else:
+        print(f"其他错误: {e.message}")</pre>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-block-title">网络超时重试示例</div>
+                        <pre>import time
+from policypilot import PolicyPilotClient
+
+client = PolicyPilotClient(api_key="your_api_key")
+
+def query_with_retry(query, max_retries=3):
+    for i in range(max_retries):
+        try:
+            return client.query_advanced(query=query)
+        except Exception as e:
+            if i == max_retries - 1:
+                raise
+            wait_time = 2 ** i  # 指数退避: 1s, 2s, 4s
+            print(f"请求失败，{wait_time}秒后重试...")
+            time.sleep(wait_time)</pre>
+                    </div>
+                </section>
+
+                <!-- 数据覆盖 -->
+                <section class="docs-section" id="data-coverage">
+                    <h2 class="docs-section-title"><span class="icon">📊</span> 数据覆盖</h2>
+                    <div class="rate-limit-info">
+                        <div class="rate-item">
+                            <div class="rate-item-label">政策数据总量</div>
+                            <div class="rate-item-value">3918 条</div>
+                        </div>
+                        <div class="rate-item">
+                            <div class="rate-item-label">有效政策链接</div>
+                            <div class="rate-item-value">1614 条</div>
+                        </div>
+                        <div class="rate-item">
+                            <div class="rate-item-label">覆盖区域</div>
+                            <div class="rate-item-value">广州各区</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 16px;">
+                        数据持续更新中，覆盖省、市、区各级政策，包括科技研发、人才引进、创业扶持、税收优惠等多种类型。
+                    </p>
                 </section>
 
             </div>

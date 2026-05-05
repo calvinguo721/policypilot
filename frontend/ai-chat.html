@@ -92,6 +92,99 @@
         .token-promo-btn:hover {
             box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
         }
+        
+        /* 错误消息样式 */
+        .error-message {
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #f87171;
+        }
+        .error-message.hidden { display: none; }
+        .error-message.warning {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+        .error-message.info {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+        }
+        .error-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+        .error-btn {
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .error-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .error-btn.retry {
+            background: rgba(56, 189, 248, 0.2);
+            color: #38bdf8;
+        }
+        
+        /* 网络状态指示器 */
+        .network-status {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(248, 113, 113, 0.9);
+            color: white;
+            padding: 8px 20px;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideDown 0.3s;
+        }
+        .network-status.hidden { display: none; }
+        .network-status.reconnecting {
+            background: rgba(251, 191, 36, 0.9);
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        /* 重试按钮 */
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-md);
+            color: #38bdf8;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+        .retry-btn:hover {
+            background: rgba(56, 189, 248, 0.3);
+        }
+        
         @media (max-width: 768px) {
             .token-promo {
                 flex-direction: column;
@@ -100,10 +193,26 @@
             .token-promo-btn {
                 width: 100%;
             }
+            .error-actions {
+                flex-direction: column;
+                margin-left: 0;
+                margin-top: 8px;
+                width: 100%;
+            }
+            .error-btn {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 网络状态指示器 -->
+    <div id="network-status" class="network-status hidden">
+        <span>🌐</span>
+        <span id="network-status-text">网络连接失败</span>
+    </div>
+
     <div class="chat-page">
         <!-- 头部 -->
         <header class="chat-header">
@@ -130,6 +239,9 @@
                 </div>
                 <a href="/api-docs" class="token-promo-btn">查看 API 文档 →</a>
             </div>
+            
+            <!-- 全局错误提示 -->
+            <div id="global-error" class="error-message hidden"></div>
             
             <!-- 对话区域 -->
             <div class="chat-messages" id="chatMessages">
@@ -203,6 +315,273 @@
 
     <script src="/static/js/chat.js"></script>
     <script>
+        // 网络状态监控
+        let isOnline = navigator.onLine;
+        let retryCount = 0;
+        const MAX_RETRY = 3;
+        
+        function updateNetworkStatus(status, message) {
+            const el = document.getElementById('network-status');
+            const textEl = document.getElementById('network-status-text');
+            el.classList.remove('hidden', 'reconnecting');
+            if (status === 'reconnecting') {
+                el.classList.add('reconnecting');
+            }
+            textEl.textContent = message;
+        }
+        
+        function hideNetworkStatus() {
+            document.getElementById('network-status').classList.add('hidden');
+        }
+        
+        window.addEventListener('online', () => {
+            isOnline = true;
+            hideNetworkStatus();
+            showGlobalError('🌐 网络已恢复', 'info');
+            setTimeout(() => hideGlobalError(), 3000);
+        });
+        
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateNetworkStatus('offline', '网络连接已断开');
+        });
+        
+        // 全局错误提示
+        function showGlobalError(message, type = 'error') {
+            const el = document.getElementById('global-error');
+            el.innerHTML = message;
+            el.className = 'error-message ' + type;
+            el.classList.remove('hidden');
+        }
+        
+        function hideGlobalError() {
+            document.getElementById('global-error').classList.add('hidden');
+        }
+        
+        // 带重试的 fetch
+        async function fetchWithRetry(url, options, retries = MAX_RETRY) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    if (!navigator.onLine) {
+                        throw new Error('NETWORK_OFFLINE');
+                    }
+                    
+                    const response = await fetch(url, {
+                        ...options,
+                        signal: AbortSignal.timeout(15000) // 15秒超时
+                    });
+                    
+                    return response;
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        if (i === retries) throw new Error('请求超时，请稍后重试');
+                        updateNetworkStatus('reconnecting', `请求超时，正在重试 (${i + 1}/${retries})...`);
+                    } else if (error.message === 'NETWORK_OFFLINE') {
+                        updateNetworkStatus('offline', '网络连接已断开');
+                        throw error;
+                    } else {
+                        if (i === retries) {
+                            updateNetworkStatus('failed', '请求失败');
+                            throw error;
+                        }
+                        updateNetworkStatus('reconnecting', `连接失败，正在重试 (${i + 1}/${retries})...`);
+                    }
+                    
+                    if (i < retries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // 指数退避
+                    }
+                }
+            }
+        }
+        
+        // 覆写 sendMessage 函数以添加错误处理
+        const originalSendMessage = typeof sendMessage === 'function' ? sendMessage : null;
+        
+        // 如果 chat.js 中没有 sendMessage，在此处定义
+        if (!originalSendMessage) {
+            async function sendMessage(message) {
+                if (!message.trim()) return;
+                
+                const messagesContainer = document.getElementById('chatMessages');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                
+                // 添加用户消息
+                addMessage('user', message);
+                document.getElementById('chatInput').value = '';
+                
+                // 显示加载状态
+                loadingIndicator.classList.remove('hidden');
+                hideGlobalError();
+                
+                try {
+                    const response = await fetchWithRetry('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message })
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            showGlobalError('❌ 请先登录或注册账户 <a href="/console" style="color:#38bdf8;margin-left:8px;">去登录</a>');
+                        } else if (response.status === 402) {
+                            showGlobalError('💰 余额不足，请充值后继续使用 <a href="/console" style="color:#38bdf8;margin-left:8px;">立即充值</a>');
+                        } else if (response.status === 429) {
+                            showGlobalError('⏱️ 请求过于频繁，请稍后再试');
+                        } else {
+                            showGlobalError('❌ 服务异常，请稍后重试 (' + response.status + ')');
+                        }
+                        loadingIndicator.classList.add('hidden');
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    loadingIndicator.classList.add('hidden');
+                    
+                    if (data.error) {
+                        showGlobalError('❌ ' + data.error);
+                        return;
+                    }
+                    
+                    // 添加 AI 回复
+                    addMessage('bot', data.response || data.message || '感谢您的提问，请稍后查看政策匹配结果。');
+                    
+                    // 如果有政策结果，显示它们
+                    if (data.policies && data.policies.length > 0) {
+                        renderPolicies(data.policies);
+                    }
+                    
+                } catch (error) {
+                    loadingIndicator.classList.add('hidden');
+                    
+                    if (error.message === 'NETWORK_OFFLINE' || !navigator.onLine) {
+                        showGlobalError('🌐 网络连接已断开，请检查网络后重试', 'warning');
+                    } else if (error.message.includes('超时')) {
+                        showGlobalError('⏱️ 请求超时，请稍后重试', 'warning');
+                    } else {
+                        showGlobalError('❌ 服务暂时不可用，请稍后重试', 'warning');
+                    }
+                    
+                    // 添加重试按钮
+                    addRetryButton(message);
+                }
+            }
+        }
+        
+        // 添加重试按钮
+        function addRetryButton(originalMessage) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const retryDiv = document.createElement('div');
+            retryDiv.className = 'message message-bot';
+            retryDiv.innerHTML = `
+                <div class="message-content">
+                    <p style="color: #94a3b8;">😔 抱歉，刚才的请求失败了</p>
+                    <button class="retry-btn" onclick="retryMessage('${originalMessage.replace(/'/g, "\\'")}')">
+                        🔄 重试
+                    </button>
+                </div>
+            `;
+            messagesContainer.appendChild(retryDiv);
+            scrollToBottom();
+        }
+        
+        // 重试消息
+        function retryMessage(message) {
+            // 移除最后一条错误消息
+            const messages = document.getElementById('chatMessages');
+            if (messages.lastChild && messages.lastChild.querySelector('.retry-btn')) {
+                messages.removeChild(messages.lastChild);
+            }
+            // 重新发送
+            sendMessage(message);
+        }
+        
+        // 滚动到底部
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // 添加消息
+        function addMessage(type, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message message-' + (type === 'user' ? 'user' : 'bot');
+            
+            if (type === 'bot') {
+                // 支持 HTML 内容
+                messageDiv.innerHTML = '<div class="message-content">' + content + '</div>';
+            } else {
+                messageDiv.innerHTML = '<div class="message-content"><p>' + content + '</p></div>';
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // 渲染政策列表
+        function renderPolicies(policies) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const policiesDiv = document.createElement('div');
+            policiesDiv.className = 'message message-bot';
+            
+            let html = '<div class="message-content"><p style="margin-bottom:12px;">📋 为您找到以下匹配的政策：</p><div class="policy-list">';
+            
+            policies.slice(0, 5).forEach(policy => {
+                html += `
+                    <div class="policy-item" style="background:rgba(15,23,42,0.5);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px;margin-bottom:8px;">
+                        <div style="font-weight:600;color:#f1f5f9;margin-bottom:4px;">${policy.name || '政策标题'}</div>
+                        <div style="font-size:12px;color:#94a3b8;">${policy.district || ''} | ${policy.amount || '金额面议'}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+            policiesDiv.innerHTML = html;
+            messagesContainer.appendChild(policiesDiv);
+            scrollToBottom();
+        }
+        
+        // 发送按钮点击
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message && typeof sendMessage === 'function') {
+                sendMessage(message);
+            }
+        });
+        
+        // 回车发送
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                if (message && typeof sendMessage === 'function') {
+                    sendMessage(message);
+                }
+            }
+        });
+        
+        // 初始化：添加欢迎消息
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesContainer = document.getElementById('chatMessages');
+            if (messagesContainer.children.length === 0) {
+                addMessage('bot', `
+                    <p>👋 您好！我是政策通 AI 助手</p>
+                    <p style="margin-top:12px;">请用自然语言描述您的情况，比如：</p>
+                    <ul style="margin-top:8px;padding-left:20px;color:#94a3b8;">
+                        <li>"我是海珠区的AI创业公司"</li>
+                        <li>"我们在天河区，有20名员工"</li>
+                        <li>"软件企业，2023年成立的"</li>
+                    </ul>
+                    <p style="margin-top:12px;color:#64748b;font-size:13px;">
+                        💡 我会根据您的情况，智能匹配最适合的政策！
+                    </p>
+                `);
+            }
+        });
+    </script>
+    <script>
         // 复用主页面的材料生成逻辑
         let selectedPolicyForMaterial = null;
         let generatedMaterial = null;
@@ -241,7 +620,8 @@
                 .catch(err => {
                     document.getElementById('material-modal-body').innerHTML = `
                         <p style="color: var(--error);">加载政策信息失败</p>
-                        <button class="btn btn-secondary" onclick="closeMaterialModal()">关闭</button>
+                        <p style="color:#94a3b8;font-size:13px;margin-top:8px;">请检查网络连接后重试</p>
+                        <button class="btn btn-secondary" onclick="closeMaterialModal()" style="margin-top:16px;">关闭</button>
                     `;
                 });
         }
@@ -291,12 +671,12 @@
                 if (data.success) {
                     generatedMaterial = data;
                     modalBody.innerHTML = `
-                        <div class="material-success">
-                            <div class="success-icon">✅</div>
-                            <h4>材料生成成功！</h4>
-                            <p>以下是为您生成的申报材料预览</p>
+                        <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:16px;margin-bottom:16px;">
+                            <div style="font-size:18px;margin-bottom:8px;">✅</div>
+                            <div style="font-weight:600;color:#34d399;">材料生成成功！</div>
+                            <div style="font-size:13px;color:#94a3b8;margin-top:4px;">以下是为您生成的申报材料预览</div>
                         </div>
-                        <div class="material-preview" style="background: var(--gray-50); padding: 16px; border-radius: var(--radius-md); margin-top: 16px; max-height: 400px; overflow-y: auto;">
+                        <div style="background:var(--gray-50);padding:16px;border-radius:var(--radius-md);max-height:400px;overflow-y:auto;color:#374151;">
                             ${data.content || '暂无预览内容'}
                         </div>
                         <div class="btn-group" style="margin-top: 20px; justify-content: center;">
@@ -308,15 +688,23 @@
                     `;
                 } else {
                     modalBody.innerHTML = `
-                        <p style="color: var(--error);">生成失败：${data.error || '未知错误'}</p>
-                        <button class="btn btn-secondary" onclick="closeMaterialModal()">关闭</button>
+                        <div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:16px;margin-bottom:16px;">
+                            <div style="font-size:18px;margin-bottom:8px;">❌</div>
+                            <div style="font-weight:600;color:#f87171;">生成失败</div>
+                            <div style="font-size:13px;color:#94a3b8;margin-top:4px;">${data.error || '未知错误'}</div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="closeMaterialModal()" style="width:100%;">关闭</button>
                     `;
                 }
             })
             .catch(err => {
                 modalBody.innerHTML = `
-                    <p style="color: var(--error);">生成失败，请稍后重试</p>
-                    <button class="btn btn-secondary" onclick="closeMaterialModal()">关闭</button>
+                    <div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:16px;">
+                        <div style="font-size:18px;margin-bottom:8px;">🌐</div>
+                        <div style="font-weight:600;color:#f87171;">网络错误</div>
+                        <div style="font-size:13px;color:#94a3b8;margin-top:4px;">请检查网络连接后重试</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="generateMaterialForPolicy()" style="margin-top:16px;width:100%;">🔄 重试</button>
                 `;
             });
         }

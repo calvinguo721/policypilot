@@ -90,6 +90,9 @@
             border-color: #38bdf8;
             box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
         }
+        .form-input::placeholder {
+            color: #64748b;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -115,6 +118,12 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
         .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+        .btn-danger {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+        .btn-danger:hover { background: rgba(248, 113, 113, 0.3); }
         /* API Key 显示 */
         .api-key-display {
             display: flex;
@@ -155,6 +164,8 @@
         .balance-label { font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
         .balance-value { font-size: 42px; font-weight: 800; color: #38bdf8; }
         .balance-value span { font-size: 20px; }
+        .balance-value.warning { color: #fbbf24; }
+        .balance-value.danger { color: #f87171; }
         .balance-actions { margin-top: 20px; display: flex; gap: 12px; justify-content: center; }
         /* 统计图表 */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -212,6 +223,50 @@
         .bill-amount { font-size: 16px; font-weight: 600; }
         .bill-amount.plus { color: #34d399; }
         .bill-amount.minus { color: #f87171; }
+        /* 错误提示 */
+        .error-msg {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .error-msg.hidden { display: none; }
+        .error-msg.alert-error {
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: #f87171;
+        }
+        .error-msg.alert-warning {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+        .error-msg.alert-info {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+        }
+        .error-msg.alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+        /* 网络错误提示 */
+        .network-error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .network-error.hidden { display: none; }
+        .network-error-icon { font-size: 32px; margin-bottom: 12px; }
+        .network-error-title { font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+        .network-error-desc { font-size: 13px; color: #94a3b8; margin-bottom: 16px; }
         /* 充值模态框 */
         .modal {
             position: fixed;
@@ -227,52 +282,99 @@
             background: #1e293b;
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: var(--radius-xl);
-            padding: 32px;
+            padding: 28px;
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
         }
-        .modal-title { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 24px; text-align: center; }
-        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-        .modal-actions .btn { flex: 1; }
-        .amount-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .amount-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
         .amount-option {
             padding: 16px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: var(--radius-md);
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .amount-option:hover { border-color: #38bdf8; }
-        .amount-option.selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
-        .amount-option-value { font-size: 20px; font-weight: 700; color: #38bdf8; }
-        .error-msg {
-            padding: 12px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: var(--radius-md);
-            color: #f87171;
-            font-size: 14px;
-            margin-bottom: 16px;
+        .amount-option:hover {
+            border-color: rgba(56, 189, 248, 0.3);
         }
-        .error-msg.hidden { display: none; }
-        .back-link {
-            display: inline-flex;
+        .amount-option.selected {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #38bdf8;
+        }
+        .amount-option-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .modal-actions .btn { flex: 1; }
+        /* 刷新按钮 */
+        .refresh-btn {
+            padding: 6px 12px;
+            background: rgba(56, 189, 248, 0.2);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #38bdf8;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+        .refresh-btn:hover { background: rgba(56, 189, 248, 0.3); }
+        .refresh-btn.loading { opacity: 0.6; pointer-events: none; }
+        .refresh-btn.loading::after {
+            content: ' ↻';
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* 余额不足提示 */
+        .low-balance-tip {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #fbbf24;
+            display: flex;
             align-items: center;
             gap: 8px;
-            color: #38bdf8;
-            text-decoration: none;
-            font-size: 14px;
-            margin-bottom: 24px;
         }
-        .hidden { display: none !important; }
+        .low-balance-tip.hidden { display: none; }
+        /* API Key 验证状态 */
+        .api-key-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        .api-key-status.valid { color: #34d399; }
+        .api-key-status.invalid { color: #f87171; }
+        .api-key-status.testing { color: #fbbf24; }
         @media (max-width: 768px) {
-            .console-title { font-size: 24px; }
+            .console-container { padding: 20px 12px; }
             .stats-grid { grid-template-columns: 1fr; }
-            .bar-chart { height: 80px; }
-            .bar-label { display: none; }
             .amount-options { grid-template-columns: repeat(2, 1fr); }
+            .modal-actions { flex-direction: column; }
         }
     </style>
 </head>
@@ -295,54 +397,80 @@
         </header>
         <main class="main">
             <div class="console-container">
-                <a href="/" class="back-link">← 返回首页</a>
+                <div class="console-header">
+                    <h1 class="console-title">💼 管理控制台</h1>
+                    <p class="console-subtitle">管理您的 API Key、余额和用量</p>
+                </div>
 
-                <!-- 登录界面 -->
+                <!-- 登录视图 -->
                 <div id="login-view" class="login-form">
                     <div class="card">
-                        <div class="card-title"><span class="icon">🔑</span> API Key 登录</div>
+                        <div class="card-title">🔑 输入您的 API Key</div>
                         <div class="form-group">
-                            <label class="form-label">输入你的 API Key</label>
-                            <input type="text" id="api-key-input" class="form-input" 
-                                   placeholder="pk_xxxxxxxxxxxxxxxx">
+                            <label class="form-label">API Key</label>
+                            <input 
+                                type="text" 
+                                id="api-key-input" 
+                                class="form-input" 
+                                placeholder="请输入您的 API Key"
+                                autocomplete="off"
+                            >
+                            <div class="api-key-status hidden" id="api-key-status"></div>
                         </div>
-                        <div id="login-error" class="error-msg hidden"></div>
-                        <button class="btn btn-primary" onclick="login()">登录控制台</button>
+                        <div id="login-error" class="error-msg alert-error hidden"></div>
+                        <button class="btn btn-primary" onclick="login()">
+                            🚀 开始使用
+                        </button>
+                        <p style="font-size: 12px; color: #64748b; margin-top: 16px; text-align: center;">
+                            还没有 API Key？<a href="/ai-chat" style="color: #38bdf8;">免费试用</a>
+                        </p>
                     </div>
                 </div>
 
-                <!-- 控制台主界面 -->
+                <!-- 控制台视图 -->
                 <div id="console-view" class="hidden">
-                    <div class="console-header">
-                        <h1 class="console-title">💼 管理控制台</h1>
-                        <p class="console-subtitle" id="company-name">欢迎回来</p>
+                    <!-- 网络错误提示 -->
+                    <div id="network-error" class="network-error hidden">
+                        <div class="network-error-icon">🌐</div>
+                        <div class="network-error-title">网络连接异常</div>
+                        <div class="network-error-desc">无法连接到服务器，请检查网络后重试</div>
+                        <button class="btn btn-secondary" onclick="retryLoad()">🔄 重试</button>
                     </div>
 
                     <!-- API Key 卡片 -->
                     <div class="card">
-                        <div class="card-title"><span class="icon">🔑</span> API Key</div>
+                        <div class="card-title">
+                            🔑 API Key
+                            <button class="refresh-btn" onclick="testApiKey()" title="验证API Key">验证</button>
+                        </div>
                         <div class="api-key-display">
-                            <span class="api-key-value" id="display-api-key">pk_xxxxxxxx</span>
+                            <span class="api-key-value" id="display-api-key">-</span>
                             <button class="copy-btn" id="copy-btn" onclick="copyApiKey()">复制</button>
                         </div>
                     </div>
 
                     <!-- 余额卡片 -->
                     <div class="card">
-                        <div class="card-title"><span class="icon">💰</span> 账户余额</div>
+                        <div class="card-title">
+                            💰 账户余额
+                            <button class="refresh-btn" id="refresh-balance-btn" onclick="refreshBalance()">刷新</button>
+                        </div>
                         <div class="balance-display">
                             <div class="balance-label">当前余额</div>
-                            <div class="balance-value">¥<span id="balance-value">0.00</span></div>
+                            <div class="balance-value" id="balance-value">0.00<span> 元</span></div>
                             <div class="balance-actions">
-                                <button class="btn btn-primary" onclick="showRechargeModal()">充值</button>
-                                <button class="btn btn-secondary" onclick="refreshBalance()">刷新</button>
+                                <button class="btn btn-primary" onclick="showRechargeModal()">💰 立即充值</button>
                             </div>
                         </div>
+                        <div id="low-balance-tip" class="low-balance-tip hidden">
+                            ⚠️ 余额不足，建议充值以保证服务连续性
+                        </div>
+                        <div id="balance-error" class="error-msg alert-error hidden"></div>
                     </div>
 
-                    <!-- 统计卡片 -->
+                    <!-- 用量统计 -->
                     <div class="card">
-                        <div class="card-title"><span class="icon">📊</span> 用量统计</div>
+                        <div class="card-title">📊 用量统计</div>
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-label">今日查询</div>
@@ -369,7 +497,10 @@
 
                     <!-- 账单记录 -->
                     <div class="card">
-                        <div class="card-title"><span class="icon">📋</span> 账单记录</div>
+                        <div class="card-title">
+                            📋 账单记录
+                            <button class="refresh-btn" onclick="loadBills()">刷新</button>
+                        </div>
                         <div class="bill-list" id="bill-list">
                             <div class="bill-item">
                                 <div class="bill-info">
@@ -381,7 +512,7 @@
 
                     <!-- 登出按钮 -->
                     <div style="text-align: center; margin-top: 24px;">
-                        <button class="btn btn-secondary" onclick="logout()">退出登录</button>
+                        <button class="btn btn-danger" onclick="logout()">🚪 退出登录</button>
                     </div>
                 </div>
             </div>
@@ -411,10 +542,11 @@
                         <div class="amount-option-value">¥1000</div>
                     </div>
                 </div>
-                <div id="recharge-error" class="error-msg hidden"></div>
+                <div id="recharge-error" class="error-msg alert-error hidden"></div>
+                <div id="recharge-success" class="error-msg alert-success hidden"></div>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" onclick="closeRechargeModal()">取消</button>
-                    <button class="btn btn-primary" onclick="doRecharge()">确认充值</button>
+                    <button class="btn btn-primary" id="recharge-btn" onclick="doRecharge()">确认充值</button>
                 </div>
             </div>
         </div>
@@ -433,6 +565,7 @@
         const API_BASE = 'http://localhost:8002';
         let currentApiKey = '';
         let selectedAmount = 50;
+        let isLoading = false;
 
         // 检查是否已登录
         function checkLogin() {
@@ -445,28 +578,87 @@
         }
 
         // 登录
-        function login() {
+        async function login() {
             const apiKey = document.getElementById('api-key-input').value.trim();
             const errorEl = document.getElementById('login-error');
+            const statusEl = document.getElementById('api-key-status');
             
             if (!apiKey) {
-                errorEl.textContent = '请输入 API Key';
+                errorEl.innerHTML = '⚠️ 请输入 API Key';
                 errorEl.classList.remove('hidden');
+                errorEl.className = 'error-msg alert-error';
                 return;
             }
             
-            currentApiKey = apiKey;
-            localStorage.setItem('token_api_key', apiKey);
+            // 显示正在验证
+            statusEl.textContent = '🔄 正在验证 API Key...';
+            statusEl.className = 'api-key-status testing';
+            statusEl.classList.remove('hidden');
             errorEl.classList.add('hidden');
-            showConsole();
-            loadConsoleData();
+            
+            try {
+                const resp = await fetch(`${API_BASE}/api/token/info`, {
+                    headers: { 'X-API-Key': apiKey }
+                });
+                
+                if (resp.ok) {
+                    currentApiKey = apiKey;
+                    localStorage.setItem('token_api_key', apiKey);
+                    statusEl.textContent = '✅ API Key 验证成功';
+                    statusEl.className = 'api-key-status valid';
+                    showConsole();
+                    loadConsoleData();
+                } else if (resp.status === 401) {
+                    errorEl.innerHTML = '❌ API Key 无效或已过期，请检查后重试';
+                    errorEl.classList.remove('hidden');
+                    statusEl.classList.add('hidden');
+                } else {
+                    // 其他错误，尝试登录（可能是新注册）
+                    currentApiKey = apiKey;
+                    localStorage.setItem('token_api_key', apiKey);
+                    showConsole();
+                    loadConsoleData();
+                }
+            } catch (e) {
+                // 网络错误
+                errorEl.innerHTML = '🌐 网络连接失败，请检查网络或稍后重试<br><small>提示：如果无法连接，可能是服务暂未启动</small>';
+                errorEl.classList.remove('hidden');
+                errorEl.className = 'error-msg alert-error';
+                statusEl.classList.add('hidden');
+            }
+        }
+
+        // 测试 API Key
+        async function testApiKey() {
+            if (!currentApiKey) return;
+            
+            const btn = document.querySelector('.refresh-btn');
+            btn.classList.add('loading');
+            
+            try {
+                const resp = await fetch(`${API_BASE}/api/token/info`, {
+                    headers: { 'X-API-Key': currentApiKey }
+                });
+                
+                if (resp.ok) {
+                    showToast('✅ API Key 有效', 'success');
+                } else if (resp.status === 401) {
+                    showToast('❌ API Key 已失效，建议重新获取', 'error');
+                } else {
+                    showToast('⚠️ API Key 验证异常', 'warning');
+                }
+            } catch (e) {
+                showToast('🌐 网络连接失败', 'error');
+            }
+            
+            btn.classList.remove('loading');
         }
 
         // 显示控制台
         function showConsole() {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('console-view').classList.remove('hidden');
-            document.getElementById('display-api-key').textContent = currentApiKey.substring(0, 20) + '...';
+            document.getElementById('display-api-key').textContent = currentApiKey.substring(0, 12) + '...' + currentApiKey.slice(-4);
         }
 
         // 登出
@@ -476,6 +668,8 @@
             document.getElementById('login-view').classList.remove('hidden');
             document.getElementById('console-view').classList.add('hidden');
             document.getElementById('api-key-input').value = '';
+            document.getElementById('api-key-status').classList.add('hidden');
+            document.getElementById('login-error').classList.add('hidden');
         }
 
         // 复制 API Key
@@ -493,21 +687,77 @@
 
         // 刷新余额
         async function refreshBalance() {
+            if (!currentApiKey) return;
+            
+            const btn = document.getElementById('refresh-balance-btn');
+            btn.classList.add('loading');
+            
             try {
                 const resp = await fetch(`${API_BASE}/api/token/balance`, {
                     headers: { 'X-API-Key': currentApiKey }
                 });
-                const data = await resp.json();
-                if (data.success) {
-                    document.getElementById('balance-value').textContent = data.balance.toFixed(2);
+                
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.success) {
+                        const balanceEl = document.getElementById('balance-value');
+                        balanceEl.textContent = data.balance.toFixed(2) + ' 元';
+                        
+                        // 根据余额显示状态
+                        balanceEl.className = 'balance-value';
+                        if (data.balance < 1) {
+                            balanceEl.classList.add('danger');
+                            document.getElementById('low-balance-tip').classList.remove('hidden');
+                        } else if (data.balance < 5) {
+                            balanceEl.classList.add('warning');
+                            document.getElementById('low-balance-tip').classList.remove('hidden');
+                        } else {
+                            document.getElementById('low-balance-tip').classList.add('hidden');
+                        }
+                    }
+                    document.getElementById('balance-error').classList.add('hidden');
+                } else if (resp.status === 401) {
+                    showBalanceError('❌ API Key 已失效，请重新登录', true);
+                } else {
+                    showBalanceError('⚠️ 获取余额失败，请稍后重试');
                 }
             } catch (e) {
-                console.error('获取余额失败', e);
+                showNetworkError();
             }
+            
+            btn.classList.remove('loading');
+        }
+
+        // 显示余额错误
+        function showBalanceError(msg, needRelogin = false) {
+            const errorEl = document.getElementById('balance-error');
+            errorEl.innerHTML = msg;
+            errorEl.classList.remove('hidden');
+            if (needRelogin) {
+                setTimeout(() => {
+                    logout();
+                }, 2000);
+            }
+        }
+
+        // 显示网络错误
+        function showNetworkError() {
+            document.getElementById('network-error').classList.remove('hidden');
+        }
+
+        // 重试加载
+        function retryLoad() {
+            document.getElementById('network-error').classList.add('hidden');
+            loadConsoleData();
         }
 
         // 加载控制台数据
         async function loadConsoleData() {
+            if (!currentApiKey || isLoading) return;
+            
+            isLoading = true;
+            document.getElementById('network-error').classList.add('hidden');
+            
             try {
                 // 加载余额
                 await refreshBalance();
@@ -516,23 +766,44 @@
                 const usageResp = await fetch(`${API_BASE}/api/token/usage?days=7`, {
                     headers: { 'X-API-Key': currentApiKey }
                 });
-                const usageData = await usageResp.json();
-                if (usageData.success) {
-                    document.getElementById('today-count').textContent = usageData.today_count || 0;
-                    document.getElementById('month-count').textContent = usageData.month_count || 0;
-                    updateChart(usageData.daily_usage || []);
+                
+                if (usageResp.ok) {
+                    const usageData = await usageResp.json();
+                    if (usageData.success) {
+                        document.getElementById('today-count').textContent = usageData.today_count || 0;
+                        document.getElementById('month-count').textContent = usageData.month_count || 0;
+                        updateChart(usageData.daily_usage || []);
+                    }
                 }
 
                 // 加载账单
+                await loadBills();
+                
+            } catch (e) {
+                console.error('加载数据失败', e);
+                showNetworkError();
+            }
+            
+            isLoading = false;
+        }
+
+        // 加载账单
+        async function loadBills() {
+            if (!currentApiKey) return;
+            
+            try {
                 const billResp = await fetch(`${API_BASE}/api/token/bill`, {
                     headers: { 'X-API-Key': currentApiKey }
                 });
-                const billData = await billResp.json();
-                if (billData.success) {
-                    renderBills(billData.bills || []);
+                
+                if (billResp.ok) {
+                    const billData = await billResp.json();
+                    if (billData.success) {
+                        renderBills(billData.bills || []);
+                    }
                 }
             } catch (e) {
-                console.error('加载数据失败', e);
+                console.error('加载账单失败', e);
             }
         }
 
@@ -540,6 +811,22 @@
         function updateChart(dailyUsage) {
             const chart = document.getElementById('usage-chart');
             const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            
+            // 如果没有数据，显示默认图表
+            if (!dailyUsage || dailyUsage.length === 0) {
+                const defaultHeights = [20, 40, 30, 60, 80, 50, 30];
+                let html = '';
+                for (let i = 0; i < 7; i++) {
+                    html += `<div class="bar-item">
+                        <div class="bar" style="height:${defaultHeights[i]}%"></div>
+                        <span class="bar-label">${days[i]}</span>
+                        <span class="bar-value">-</span>
+                    </div>`;
+                }
+                chart.innerHTML = html;
+                return;
+            }
+            
             const maxCount = Math.max(...dailyUsage.map(d => d.count), 1);
             
             let html = '';
@@ -549,7 +836,7 @@
                 html += `<div class="bar-item">
                     <div class="bar" style="height:${height}%"></div>
                     <span class="bar-label">${days[i]}</span>
-                    <span class="bar-value">${count}</span>
+                    <span class="bar-value">${count || '-'}</span>
                 </div>`;
             }
             chart.innerHTML = html;
@@ -558,7 +845,7 @@
         // 渲染账单
         function renderBills(bills) {
             const list = document.getElementById('bill-list');
-            if (!bills.length) {
+            if (!bills || bills.length === 0) {
                 list.innerHTML = '<div class="bill-item"><div class="bill-info"><span class="bill-type">暂无账单记录</span></div></div>';
                 return;
             }
@@ -585,6 +872,8 @@
         // 充值模态框
         function showRechargeModal() {
             document.getElementById('recharge-modal').classList.remove('hidden');
+            document.getElementById('recharge-error').classList.add('hidden');
+            document.getElementById('recharge-success').classList.add('hidden');
         }
 
         function closeRechargeModal() {
@@ -600,6 +889,12 @@
 
         async function doRecharge() {
             const errorEl = document.getElementById('recharge-error');
+            const successEl = document.getElementById('recharge-success');
+            const btn = document.getElementById('recharge-btn');
+            
+            btn.disabled = true;
+            btn.textContent = '处理中...';
+            
             try {
                 const resp = await fetch(`${API_BASE}/api/token/recharge`, {
                     method: 'POST',
@@ -609,23 +904,63 @@
                     },
                     body: JSON.stringify({ amount: selectedAmount })
                 });
+                
                 const data = await resp.json();
+                
                 if (data.success) {
-                    closeRechargeModal();
-                    await refreshBalance();
-                    await loadConsoleData();
+                    successEl.innerHTML = `✅ 充值成功！已充值 ${selectedAmount} 元`;
+                    successEl.classList.remove('hidden');
+                    errorEl.classList.add('hidden');
+                    
+                    setTimeout(async () => {
+                        closeRechargeModal();
+                        await refreshBalance();
+                        await loadBills();
+                    }, 1500);
                 } else {
-                    errorEl.textContent = data.message || '充值失败';
+                    errorEl.innerHTML = `❌ 充值失败：${data.message || '未知错误'}`;
                     errorEl.classList.remove('hidden');
+                    successEl.classList.add('hidden');
                 }
             } catch (e) {
-                errorEl.textContent = '网络错误，请稍后重试';
+                errorEl.innerHTML = '🌐 网络错误，请稍后重试';
                 errorEl.classList.remove('hidden');
+                successEl.classList.add('hidden');
             }
+            
+            btn.disabled = false;
+            btn.textContent = '确认充值';
         }
+
+        // Toast 提示
+        function showToast(msg, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `error-msg alert-${type}`;
+            toast.style.cssText = 'position:fixed;top:80px;right:20px;z-index:2000;animation:fadeIn 0.3s;';
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        `;
+        document.head.appendChild(style);
 
         // 页面加载
         document.addEventListener('DOMContentLoaded', checkLogin);
+        
+        // 回车登录
+        document.getElementById('api-key-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>

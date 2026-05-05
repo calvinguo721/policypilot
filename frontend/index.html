@@ -144,6 +144,32 @@
         .hero-stat { text-align: center; }
         .hero-stat-value { font-size: 36px; font-weight: 800; color: #38bdf8; }
         .hero-stat-label { font-size: 14px; color: #64748b; margin-top: 4px; }
+        
+        /* 数据覆盖展示 */
+        .data-coverage {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+        }
+        .data-item {
+            text-align: center;
+            min-width: 120px;
+        }
+        .data-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #34d399;
+        }
+        .data-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
         .features-section { margin-bottom: 40px; }
         .features-title {
             text-align: center;
@@ -250,6 +276,47 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
         }
+        
+        /* 快速接入步骤 */
+        .quick-start-section {
+            margin-bottom: 40px;
+        }
+        .quick-start-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .quick-step {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+        }
+        .quick-step-num {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            color: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 0 auto 16px;
+        }
+        .quick-step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+        .quick-step-desc {
+            font-size: 13px;
+            color: #64748b;
+        }
+        
         @media (max-width: 768px) {
             .hero-section { padding: 40px 20px; }
             .hero-title { font-size: 28px; }
@@ -259,6 +326,8 @@
             .pricing-grid { grid-template-columns: 1fr; }
             .hero-actions { flex-direction: column; }
             .hero-btn { width: 100%; justify-content: center; }
+            .quick-start-grid { grid-template-columns: repeat(2, 1fr); }
+            .data-coverage { gap: 20px; }
         }
     </style>
 </head>
@@ -302,16 +371,59 @@
                                 <div class="hero-stat-label">API 端点</div>
                             </div>
                             <div class="hero-stat">
-                                <div class="hero-stat-value" id="policy-count">213+</div>
-                                <div class="hero-stat-label">政策数据源</div>
+                                <div class="hero-stat-value" id="policy-count">3918</div>
+                                <div class="hero-stat-label">政策数据</div>
                             </div>
                             <div class="hero-stat">
                                 <div class="hero-stat-value">99.9%</div>
                                 <div class="hero-stat-label">服务可用性</div>
                             </div>
                         </div>
+                        <!-- 数据覆盖展示 -->
+                        <div class="data-coverage">
+                            <div class="data-item">
+                                <div class="data-value">1614</div>
+                                <div class="data-label">有效政策链接</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-value">广州</div>
+                                <div class="data-label">覆盖区域</div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-value">24h</div>
+                                <div class="data-label">数据更新</div>
+                            </div>
+                        </div>
                     </div>
                 </section>
+
+                <!-- 快速接入步骤 -->
+                <section class="quick-start-section">
+                    <h2 class="features-title">5分钟快速接入</h2>
+                    <div class="quick-start-grid">
+                        <div class="quick-step">
+                            <div class="quick-step-num">1</div>
+                            <div class="quick-step-title">注册账号</div>
+                            <div class="quick-step-desc">填写企业信息，获取 API Key</div>
+                        </div>
+                        <div class="quick-step">
+                            <div class="quick-step-num">2</div>
+                            <div class="quick-step-title">安装 SDK</div>
+                            <div class="quick-step-desc">pip install policypilot-sdk</div>
+                        </div>
+                        <div class="quick-step">
+                            <div class="quick-step-num">3</div>
+                            <div class="quick-step-title">调用接口</div>
+                            <div class="quick-step-desc">开始查询政策数据</div>
+                        </div>
+                        <div class="quick-step">
+                            <div class="quick-step-num">4</div>
+                            <div class="quick-step-title">按量计费</div>
+                            <div class="quick-step-desc">0.1元起，零门槛体验</div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="features-section">
                     <h2 class="features-title">为什么选择政策通 Token API</h2>
                     <div class="features-grid">
@@ -375,11 +487,12 @@
         </footer>
     </div>
     <script>
+        // 保留原有的政策数量获取逻辑（如果有后端接口）
         fetch('/api/policies/count')
             .then(r => r.json())
             .then(d => {
                 const el = document.getElementById('policy-count');
-                if (el) el.textContent = (d.count || 213) + '+';
+                if (el && d.count) el.textContent = d.count + '+';
             }).catch(() => {});
     </script>
 </body>
