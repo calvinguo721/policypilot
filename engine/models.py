@@ -47,6 +47,9 @@ class CompanyInfo(BaseModel):
     has_vc_investment: bool = Field(False, description="是否有风险投资")
 
 
+# 别名兼容性 - main.py 中使用 Company 而非 CompanyInfo
+Company = CompanyInfo
+
 class MatchedPolicy(BaseModel):
     """匹配结果模型"""
     policy: Policy

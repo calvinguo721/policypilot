@@ -11,7 +11,7 @@ from pydantic import BaseModel
 import os
 import json
 
-from models import MatchRequest, MatchResponse, Policy
+from models import MatchRequest, MatchResponse, Policy, CompanyInfo
 from matcher import PolicyMatcher
 from generator import MaterialGenerator
 from auth import register, login, get_current_user, get_user_info
@@ -528,3 +528,445 @@ async def my_results_page():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+# ========== Token API 端点 ==========
+# V1: Token化API网关 - 按查询计费模式
+
+from customers import (
+    register_customer, 
+    get_customer_by_api_key, 
+    get_customer_by_id,
+    verify_api_key,
+    recharge_balance,
+    get_balance_transactions,
+    get_all_customers
+)
+from billing import (
+    get_usage_stats, 
+    get_current_month_usage,
+    get_monthly_bill,
+    get_bill_history,
+    get_pricing_info,
+    calculate_cost
+)
+from token_gateway import require_token_auth, gateway
+from pydantic import BaseModel, Field
+
+
+# Token API 请求模型
+class TokenQueryRequest(BaseModel):
+    """Token查询请求"""
+    name: str = Field(..., description="企业名称")
+    district: str = Field(..., description="所属区：海珠/天河")
+    industry: str = Field(..., description="所属行业")
+    established_years: int = Field(..., ge=0, description="成立年限")
+    revenue_scale: str = Field(..., description="营收规模")
+    employee_count: int = Field(..., ge=0, description="员工数量")
+    has_ip: bool = Field(False, description="是否有知识产权")
+    is_high_tech: bool = Field(False, description="是否高新技术企业")
+    is_specialized: bool = Field(False, description="是否专精特新企业")
+    has_vc_investment: bool = Field(False, description="是否有风险投资")
+
+
+class AdvancedQueryRequest(TokenQueryRequest):
+    """高级查询请求（包含AI解读）"""
+    include_ai_analysis: bool = Field(True, description="是否包含AI分析")
+
+
+class CustomerRegisterRequest(BaseModel):
+    """客户注册请求"""
+    customer_name: str = Field(..., description="客户名称/联系人")
+    company_name: str = Field(None, description="公司名称")
+    email: str = Field(None, description="邮箱")
+    phone: str = Field(None, description="电话")
+    initial_balance: float = Field(0.0, description="初始充值金额")
+
+
+class RechargeRequest(BaseModel):
+    """充值请求"""
+    amount: float = Field(..., gt=0, description="充值金额")
+
+
+# ========== 客户管理端点 ==========
+
+@app.post("/api/token/register", tags=["Token API"])
+async def token_register(request: CustomerRegisterRequest):
+    """
+    注册Token API客户
+    
+    - 自动生成 API Key (格式: pp_live_xxxxxxxx)
+    - 可选初始充值
+    """
+    result = register_customer(
+        customer_name=request.customer_name,
+        company_name=request.company_name,
+        email=request.email,
+        phone=request.phone,
+        initial_balance=request.initial_balance
+    )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    
+    return {
+        "success": True,
+        "message": "注册成功",
+        "data": {
+            "customer_id": result["customer_id"],
+            "api_key": result["api_key"],
+            "api_secret": result["api_secret"],
+            "balance": result["balance"],
+            "rate_limit": result["rate_limit"],
+            "pricing": get_pricing_info()
+        }
+    }
+
+
+@app.post("/api/token/recharge", tags=["Token API"])
+async def token_recharge(
+    request: RechargeRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    充值余额
+    
+    - 需要通过 X-API-Key header 提供API Key
+    """
+    api_key = authorization.replace("Bearer ", "") if authorization else None
+    if not api_key:
+        raise HTTPException(status_code=401, detail="请提供API Key")
+    
+    auth = gateway.authenticate(api_key)
+    if not auth["success"]:
+        raise HTTPException(status_code=401, detail=auth["message"])
+    
+    result = recharge_balance(
+        customer_id=auth["customer_id"],
+        amount=request.amount,
+        description=f"Token API充值 {request.amount} 元"
+    )
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    
+    return {
+        "success": True,
+        "message": "充值成功",
+        "amount": result["amount"],
+        "new_balance": result["new_balance"]
+    }
+
+
+# ========== 查询端点 ==========
+
+@app.post("/api/token/query", tags=["Token API"])
+async def token_query(
+    request: TokenQueryRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key")
+):
+    """
+    基础政策查询
+    
+    - 按企业画像匹配，返回政策列表
+    - 费用: 0.1元/次
+    - 需要通过 X-API-Key header 提供API Key
+    """
+    api_key = x_api_key or ""
+    
+    # 使用网关装饰器验证
+    auth = gateway.authenticate(api_key)
+    if not auth["success"]:
+        raise HTTPException(status_code=401, detail=auth["message"])
+    
+    # 限流检查
+    rate_result = gateway.check_rate_limit(auth["customer_id"], auth["rate_limit"])
+    if not rate_result["allowed"]:
+        raise HTTPException(
+            status_code=429, 
+            detail=f"请求过于频繁，请{rate_result['retry_after']}秒后重试"
+        )
+    
+    # 余额检查
+    cost = calculate_cost("basic")
+    if auth["balance"] < cost:
+        raise HTTPException(
+            status_code=402, 
+            detail=f"余额不足，当前余额{auth['balance']}元，查询费用{cost}元"
+        )
+    
+    # 执行查询
+    import time
+    start_time = time.time()
+    
+    try:
+        company = CompanyInfo(**request.model_dump())
+        matched = matcher.match(company)
+        highly_recommended = [m for m in matched if m.is_highly_recommended]
+        
+        result = {
+            "success": True,
+            "company_name": request.name,
+            "total_matches": len(matched),
+            "highly_recommended_count": len(highly_recommended),
+            "matched_policies": matched[:20],  # 限制返回20条
+            "query_type": "basic",
+            "cost": cost,
+            "remaining_balance": auth["balance"] - cost
+        }
+        
+        # 记录日志
+        response_time_ms = int((time.time() - start_time) * 1000)
+        from billing import log_api_usage
+        log_api_usage(
+            customer_id=auth["customer_id"],
+            api_key=api_key,
+            endpoint="/api/token/query",
+            query_type="basic",
+            result_count=len(matched),
+            response_time_ms=response_time_ms
+        )
+        
+        # 扣费
+        from customers import deduct_balance
+        deduct_balance(
+            customer_id=auth["customer_id"],
+            amount=cost,
+            description="基础政策查询"
+        )
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询出错: {str(e)}")
+
+
+@app.post("/api/token/query/advanced", tags=["Token API"])
+async def token_query_advanced(
+    request: AdvancedQueryRequest,
+    x_api_key: Optional[str] = Header(None, alias="X-API-Key")
+):
+    """
+    高级政策查询（含AI解读）
+    
+    - 包含政策解读、申报建议等AI分析
+    - 费用: 0.5元/次
+    - 需要通过 X-API-Key header 提供API Key
+    """
+    api_key = x_api_key or ""
+    
+    # 认证
+    auth = gateway.authenticate(api_key)
+    if not auth["success"]:
+        raise HTTPException(status_code=401, detail=auth["message"])
+    
+    # 限流检查
+    rate_result = gateway.check_rate_limit(auth["customer_id"], auth["rate_limit"])
+    if not rate_result["allowed"]:
+        raise HTTPException(
+            status_code=429, 
+            detail=f"请求过于频繁，请{rate_result['retry_after']}秒后重试"
+        )
+    
+    # 余额检查
+    cost = calculate_cost("advanced")
+    if auth["balance"] < cost:
+        raise HTTPException(
+            status_code=402, 
+            detail=f"余额不足，当前余额{auth['balance']}元，查询费用{cost}元"
+        )
+    
+    import time
+    start_time = time.time()
+    
+    try:
+        company = CompanyInfo(**request.model_dump(exclude={"include_ai_analysis"}))
+        matched = matcher.match(company)
+        highly_recommended = [m for m in matched if m.is_highly_recommended]
+        
+        # 生成AI分析（简化版，实际可接入LLM）
+        ai_analysis = None
+        if request.include_ai_analysis and matched:
+            top_policies = matched[:5]
+            ai_analysis = {
+                "summary": f"根据企业画像分析，为您匹配到 {len(matched)} 条适用政策，其中 {len(highly_recommended)} 条重点推荐。",
+                "top_recommendations": [
+                    {
+                        "policy_name": p.policy.name,
+                        "match_score": p.match_score,
+                        "analysis": f"该政策匹配度{p.match_score}%，{' '.join(p.match_reasons[:2])}。",
+                        "application_suggestion": f"建议优先申报 {p.policy.name}，补贴金额 {p.policy.subsidy_amount}。"
+                    }
+                    for p in top_policies
+                ],
+                "risk_alerts": [
+                    f"注意申报截止时间：{p.policy.deadline}"
+                    for p in top_policies[:3]
+                ]
+            }
+        
+        result = {
+            "success": True,
+            "company_name": request.name,
+            "total_matches": len(matched),
+            "highly_recommended_count": len(highly_recommended),
+            "matched_policies": matched[:20],
+            "ai_analysis": ai_analysis,
+            "query_type": "advanced",
+            "cost": cost,
+            "remaining_balance": auth["balance"] - cost
+        }
+        
+        # 记录日志
+        response_time_ms = int((time.time() - start_time) * 1000)
+        from billing import log_api_usage
+        log_api_usage(
+            customer_id=auth["customer_id"],
+            api_key=api_key,
+            endpoint="/api/token/query/advanced",
+            query_type="advanced",
+            result_count=len(matched),
+            response_time_ms=response_time_ms
+        )
+        
+        # 扣费
+        from customers import deduct_balance
+        deduct_balance(
+            customer_id=auth["customer_id"],
+            amount=cost,
+            description="高级政策查询（含AI解读）"
+        )
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询出错: {str(e)}")
+
+
+# ========== 用量与账单端点 ==========
+
+@app.get("/api/token/usage", tags=["Token API"])
+async def token_usage(
+    days: int = 30,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    查询用量统计
+    
+    - 返回每日/总调用统计
+    - 默认查询最近30天
+    """
+    api_key = authorization.replace("Bearer ", "") if authorization else None
+    if not api_key:
+        raise HTTPException(status_code=401, detail="请提供API Key")
+    
+    auth = gateway.authenticate(api_key)
+    if not auth["success"]:
+        raise HTTPException(status_code=401, detail=auth["message"])
+    
+    stats = get_usage_stats(auth["customer_id"], days)
+    
+    return {
+        "success": True,
+        "customer_id": auth["customer_id"],
+        "customer_name": auth["customer_name"],
+        "current_balance": auth["balance"],
+        "usage": stats
+    }
+
+
+@app.get("/api/token/bill", tags=["Token API"])
+async def token_bill(
+    month: str = None,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    查询账单
+    
+    - 不带参数返回当月账单
+    - 带 month 参数返回指定月份 (格式: YYYY-MM)
+    """
+    api_key = authorization.replace("Bearer ", "") if authorization else None
+    if not api_key:
+        raise HTTPException(status_code=401, detail="请提供API Key")
+    
+    auth = gateway.authenticate(api_key)
+    if not auth["success"]:
+        raise HTTPException(status_code=401, detail=auth["message"])
+    
+    if month:
+        bill = get_monthly_bill(auth["customer_id"], month)
+        if not bill:
+            raise HTTPException(status_code=404, detail=f"未找到 {month} 的账单")
+        history = [bill]
+    else:
+        history = get_bill_history(auth["customer_id"])
+    
+    return {
+        "success": True,
+        "customer_id": auth["customer_id"],
+        "customer_name": auth["customer_name"],
+        "current_balance": auth["balance"],
+        "bills": history
+    }
+
+
+@app.get("/api/token/balance", tags=["Token API"])
+async def token_balance(
+    authorization: Optional[str] = Header(None)
+):
+    """
+    查询余额
+    
+    - 返回当前余额
+    - 返回最近余额变动记录
+    """
+    api_key = authorization.replace("Bearer ", "") if authorization else None
+    if not api_key:
+        raise HTTPException(status_code=401, detail="请提供API Key")
+    
+    auth = gateway.authenticate(api_key)
+    if not auth["success"]:
+        raise HTTPException(status_code=401, detail=auth["message"])
+    
+    transactions = get_balance_transactions(auth["customer_id"], 20)
+    
+    return {
+        "success": True,
+        "customer_id": auth["customer_id"],
+        "customer_name": auth["customer_name"],
+        "balance": auth["balance"],
+        "rate_limit": auth["rate_limit"],
+        "pricing": get_pricing_info(),
+        "transactions": transactions
+    }
+
+
+# ========== Token API 信息端点 ==========
+
+@app.get("/api/token/info", tags=["Token API"])
+async def token_info():
+    """
+    获取Token API信息
+    
+    - 返回API版本、定价、端点说明
+    """
+    return {
+        "name": "PolicyPilot Token API",
+        "version": "v1",
+        "description": "政策通Token化API网关 - 按查询计费",
+        "pricing": get_pricing_info(),
+        "endpoints": {
+            "register": "POST /api/token/register - 注册客户",
+            "recharge": "POST /api/token/recharge - 充值余额",
+            "query": "POST /api/token/query - 基础查询 (0.1元/次)",
+            "query_advanced": "POST /api/token/query/advanced - 高级查询 (0.5元/次)",
+            "usage": "GET /api/token/usage - 用量统计",
+            "bill": "GET /api/token/bill - 账单查询",
+            "balance": "GET /api/token/balance - 余额查询"
+        },
+        "authentication": "通过 X-API-Key 请求头传递API Key"
+    }
+
+
+print("✅ Token API V1 端点注册完成")
