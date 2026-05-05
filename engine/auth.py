@@ -7,7 +7,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
-from database import create_user, get_user_by_phone, get_user_by_id, update_last_login
+from engine.database import create_user, get_user_by_phone, get_user_by_id, update_last_login
 
 # Token有效期（天）
 TOKEN_EXPIRY_DAYS = 30

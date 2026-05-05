@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import json
 
-from customers import (
+from engine.customers import (
     validate_api_key, 
     get_customer_info, 
     get_balance, 
@@ -18,8 +18,8 @@ from customers import (
     check_rate_limit,
     register_customer as db_register_customer
 )
-from billing import billing_service, OperationType
-from agent import policy_agent
+from engine.billing import billing_service, OperationType
+from engine.agent import policy_agent
 
 
 # ========== 请求/响应模型 ==========

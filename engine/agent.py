@@ -3,7 +3,7 @@ AI Agent - 政策解读和智能问答代理
 """
 import json
 from typing import Dict, Any, List, Optional
-from llm_fallback import llm_fallback
+from engine.llm_fallback import llm_fallback
 
 
 class PolicyAgent:

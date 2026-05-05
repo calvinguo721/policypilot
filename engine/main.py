@@ -8,19 +8,19 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from contextlib import asynccontextmanager
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import os
 import json
 
-from models import MatchRequest, MatchResponse, Policy
-from matcher import PolicyMatcher
-from generator import MaterialGenerator
-from auth import register, login, get_current_user, get_user_info
-from database import save_diagnosis_result, get_user_results, get_result_by_id
+from engine.models import MatchRequest, MatchResponse, Policy
+from engine.matcher import PolicyMatcher
+from engine.generator import MaterialGenerator
+from engine.auth import register, login, get_current_user, get_user_info
+from engine.database import save_diagnosis_result, get_user_results, get_result_by_id
 
 # Token API 相关模块
-from customers import init_token_tables
-from token_gateway import (
+from engine.customers import init_token_tables
+from engine.token_gateway import (
     TokenRegisterRequest,
     TokenQueryRequest,
     TokenAdvancedQueryRequest,
@@ -585,11 +585,15 @@ async def my_results_page():
     raise HTTPException(status_code=404, detail="页面不存在")
 
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002)
 
 
+@app.get("/ai-chat")
+async def ai_chat_page():
+    """AI对话页面"""
+    page_path = os.path.join(frontend_dir, "ai-chat.html")
+    if os.path.exists(page_path):
+        return FileResponse(page_path)
+    raise HTTPException(status_code=404, detail="页面不存在")
 # ========== 新增静态页面路由 ==========
 
 @app.get("/api-docs")
@@ -695,3 +699,7 @@ async def token_info():
             "currency": "CNY"
         }
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8002)

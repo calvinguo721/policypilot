@@ -4,7 +4,7 @@
 import json
 import os
 from typing import List, Dict, Tuple
-from models import Policy, CompanyInfo, MatchedPolicy
+from engine.models import Policy, CompanyInfo, MatchedPolicy
 
 
 class PolicyMatcher:
