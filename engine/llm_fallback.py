@@ -20,6 +20,11 @@ class LLMFallback:
         self.ollama_model = os.getenv('OLLAMA_MODEL', 'qwen2.5:1.5b')
         self.ollama_fallback_model = os.getenv('OLLAMA_FALLBACK_MODEL', 'qwen2.5:1.5b')
         
+        # DeepSeek API配置
+        self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        self.deepseek_base_url = os.getenv("OPENAI_BASE_URL", "") or "https://api.deepseek.com/v1"
+        self.deepseek_model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+        
         # 意图关键词
         self.intent_keywords = {
             "补贴申请": ["申请", "补贴", "资助", "奖励", "扶持", "申报", "领取", "获取"],
@@ -44,6 +49,46 @@ class LLMFallback:
             "closing": "\n如有更多问题，欢迎继续咨询！",
         }
     
+    def _call_deepseek(self, prompt: str, system_prompt: str = None) -> Optional[str]:
+        """调用DeepSeek API"""
+        if not self.deepseek_api_key:
+            return None
+        
+        try:
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
+            
+            response = requests.post(
+                f"{self.deepseek_base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.deepseek_api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": self.deepseek_model,
+                    "messages": messages,
+                    "max_tokens": 1000,
+                    "temperature": 0.7
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            else:
+                print(f"DeepSeek API error: {response.status_code} {response.text[:200]}")
+                return None
+        except requests.exceptions.Timeout:
+            print("DeepSeek API timeout")
+            return None
+        except Exception as e:
+            print(f"DeepSeek API error: {e}")
+            return None
+
+
     def _call_ollama(self, prompt: str, system_prompt: str = None) -> Optional[str]:
         """调用Ollama API - 使用原生API格式，更短的输出"""
         if not self.use_ollama:
@@ -121,7 +166,7 @@ class LLMFallback:
 请简洁推荐1-2条最适合的政策。
 """
         
-        return self._call_ollama(user_prompt, system_prompt)
+        return self._call_deepseek(user_prompt, system_prompt) or self._call_ollama(user_prompt, system_prompt)
     
     def analyze_intent(self, query: str) -> Dict[str, Any]:
         """分析用户查询意图"""

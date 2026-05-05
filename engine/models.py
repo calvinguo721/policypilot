@@ -2,7 +2,7 @@
 数据模型定义
 """
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 
 
@@ -19,16 +19,16 @@ class Policy(BaseModel):
     id: str = Field(..., description="政策ID")
     name: str = Field(..., description="政策名称")
     district: str = Field(..., description="所属区")
-    department: str = Field(..., description="发布部门")
+    department: Optional[str] = Field("", description="发布部门")
     category: str = Field(..., description="政策类别")
-    subsidy_amount: str = Field(..., description="补贴金额说明")
-    subsidy_ratio: str = Field(..., description="补贴比例/方式")
-    conditions: PolicyCondition = Field(..., description="申报条件")
+    subsidy_amount: Optional[Any] = Field("", description="补贴金额说明")
+    subsidy_ratio: Optional[Any] = Field("", description="补贴比例/方式")
+    conditions: Any = Field(default_factory=dict, description="申报条件")
     requirements: List[str] = Field(default_factory=list, description="基本要求")
-    deadline: str = Field(..., description="申报时间")
+    deadline: Optional[str] = Field("", description="申报时间")
     materials: List[str] = Field(default_factory=list, description="申报材料")
-    max_amount: float = Field(0, description="最高金额(万元)")
-    min_amount: float = Field(0, description="最低金额(万元)")
+    max_amount: Optional[float] = Field(0, description="最高金额(万元)")
+    min_amount: Optional[float] = Field(0, description="最低金额(万元)")
     link: str = Field("", description="政策原文链接")
     description: str = Field("", description="政策描述")
 

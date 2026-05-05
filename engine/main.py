@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 """
 政策通 PolicyPilot - FastAPI 后端服务 (含白标支持 + Token API)
 端口: 8002
