@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Deploy via SSH
+    - name: Copy files and execute
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 121.43.67.216
@@ -20,16 +20,16 @@ jobs:
         command_timeout: 120s
         script_stop: true
         script: |
-          echo "Ready to receive script"
-    - name: Copy script to server
+          mkdir -p /tmp/deploy
+    - name: Copy script files
       uses: appleboy/scp-action@v0.1.7
       with:
         host: 121.43.67.216
         username: root
         password: 136204Aoc
-        source: "scripts/${{ github.event.inputs.script_name }}"
-        target: "/tmp"
-    - name: Execute script
+        source: "scripts/*,frontend/*"
+        target: "/tmp/deploy"
+    - name: Execute
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 121.43.67.216
@@ -37,4 +37,17 @@ jobs:
         password: 136204Aoc
         command_timeout: 120s
         script_stop: true
-        script: python3 /tmp/scripts/${{ github.event.inputs.script_name }}
+        script: |
+          ls /tmp/deploy/
+          if [ -f /tmp/deploy/scripts/${{ github.event.inputs.script_name }} ]; then
+            python3 /tmp/deploy/scripts/${{ github.event.inputs.script_name }}
+          fi
+          if [ -f /tmp/deploy/scripts/ai-chat.html ]; then
+            cp /tmp/deploy/scripts/ai-chat.html /var/www/policypilot/frontend/ai-chat.html
+            echo "ai-chat.html deployed"
+          fi
+          if [ -f /tmp/deploy/frontend/ai-chat.html ]; then
+            cp /tmp/deploy/frontend/ai-chat.html /var/www/policypilot/frontend/ai-chat.html
+            echo "ai-chat.html deployed from frontend dir"
+          fi
+          echo "DONE"
