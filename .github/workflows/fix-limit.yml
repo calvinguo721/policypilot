@@ -1,18 +1,100 @@
-name: Fix Daily Limit
+name: Fix All Features
 on: workflow_dispatch
 jobs:
   fix:
     runs-on: ubuntu-latest
     steps:
-    - name: SSH and fix
+    - name: SSH and fix all
       uses: appleboy/ssh-action@v1
       with:
         host: 121.43.67.216
         username: root
         password: 136204Aoc
+        script_timeout: 120s
         script: |
-          sed -i 's/daily_limit = 3 if is_free/daily_limit = 1 if is_free/' /var/www/policypilot/engine/main.py
-          sed -i 's/每日3次/每日1次/g' /var/www/policypilot/engine/main.py
+          cd /var/www/policypilot/frontend
+          
+          # 1. 修复console.html - 添加API调用函数
+          if ! grep -q "async function getBalance" console.html; then
+            sed -i '/async function loadUserData/i\
+    async function getBalance(apiKey) {\
+      try {\
+        const r = await fetch("/api/token/balance", { headers: { "X-API-Key": apiKey } });\
+        return await r.json();\
+      } catch(e) { return { success: false }; }\
+    }\
+\
+    async function getUsage(apiKey) {\
+      try {\
+        const r = await fetch("/api/token/usage", { headers: { "X-API-Key": apiKey } });\
+        const d = await r.json();\
+        if (d.success) {\
+          const summary = d.summary || {};\
+          return {\
+            success: true,\
+            total_calls: summary.total_requests || 0,\
+            basic_calls: (d.details || []).filter(x => x.operation_type === "basic_query").reduce((s,x) => s + x.request_count, 0),\
+            advanced_calls: (d.details || []).filter(x => x.operation_type === "advanced_query").reduce((s,x) => s + x.request_count, 0),\
+            daily_usage: (d.details || []).slice(-7).map(x => x.request_count || 0)\
+          };\
+        }\
+        return { success: false };\
+      } catch(e) { return { success: false }; }\
+    }\
+\
+    async function getBill(apiKey) {\
+      try {\
+        const r = await fetch("/api/token/bill", { headers: { "X-API-Key": apiKey } });\
+        return await r.json();\
+      } catch(e) { return { success: false, bills: [] }; }\
+    }\
+' console.html
+            echo "1. console.html API functions added"
+          else
+            echo "1. console.html API functions already exist"
+          fi
+          
+          # 2. 包月标识
+          sed -i 's/充值余额/包月899元\/年 · 余额查询/' console.html
+          
+          # 3. AI对话预设问题
+          if ! grep -q "handleQuickQuestion" ai-chat.html; then
+            sed -i 's|<div class="chat-input-container">|<div class="quick-questions" style="display:flex;gap:8px;padding:0 20px 12px;flex-wrap:wrap;"><button onclick="handleQuickQuestion(this)" style="padding:8px 16px;border-radius:20px;border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.08);color:#00d4ff;cursor:pointer;font-size:13px;">我司能拿哪些补贴？</button><button onclick="handleQuickQuestion(this)" style="padding:8px 16px;border-radius:20px;border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.08);color:#00d4ff;cursor:pointer;font-size:13px;">深圳科技企业有什么政策？</button><button onclick="handleQuickQuestion(this)" style="padding:8px 16px;border-radius:20px;border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.08);color:#00d4ff;cursor:pointer;font-size:13px;">创业补贴怎么申请？</button></div><div class="chat-input-container">|' ai-chat.html
+            echo "3. quick questions added"
+          else
+            echo "3. quick questions already exist"
+          fi
+          
+          # 4. 清空对话和预设函数
+          if ! grep -q "function clearChat" ai-chat.html; then
+            sed -i '/function sendMessage/i\
+    function handleQuickQuestion(btn) {\
+      document.getElementById("chatInput").value = btn.textContent;\
+      sendMessage();\
+    }\
+    function clearChat() {\
+      if (confirm("清空所有对话记录？")) {\
+        document.getElementById("chatMessages").innerHTML = "";\
+        localStorage.removeItem("chatHistory");\
+      }\
+    }\
+' ai-chat.html
+            echo "4. clearChat & handleQuickQuestion added"
+          fi
+          
+          # 5. 清空按钮
+          if ! grep -q "clearChat" ai-chat.html || ! grep -q "清空对话" ai-chat.html; then
+            sed -i 's|PolicyPilot AI 助手|<span onclick="clearChat()" style="cursor:pointer;float:right;font-size:12px;color:#8899aa;padding:4px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;">清空对话</span> PolicyPilot AI 助手|' ai-chat.html
+            echo "5. clear button added"
+          fi
+          
+          # 6. API文档认证说明
+          if ! grep -q "认证方式" api-docs.html; then
+            sed -i 's|<p class="docs-desc">采用包月订阅模式|<div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:12px;padding:20px;margin-bottom:24px;"><h3 style="color:#f5a623;margin-bottom:12px;">认证方式</h3><p style="color:#8899aa;line-height:1.8;">所有API请求需在HTTP Header中携带 <code style="background:rgba(0,0,0,0.3);padding:2px 8px;border-radius:4px;color:#00d4ff;">X-API-Key</code> 进行身份验证。注册后即可获得API Key。</p></div><p class="docs-desc">采用包月订阅模式|' api-docs.html
+            echo "6. auth docs added"
+          fi
+          
+          # 7. 重启
           rm -rf /var/www/policypilot/engine/__pycache__
           systemctl restart policypilot
-          echo done
+          echo "ALL DONE"
