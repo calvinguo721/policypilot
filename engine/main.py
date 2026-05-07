@@ -259,11 +259,7 @@ async def get_policies(district: str = None, category: str = None, partner_id: O
     else:
         result = matcher.get_all_policies()
     
-    return {
-        "data": result,
-        "partner_id": partner_id,
-        "branding": get_partner_branding(partner_id)
-    }
+    return result
 
 
 @app.get("/policy/{policy_id}", response_model=Policy)
