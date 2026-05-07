@@ -13,6 +13,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 import os
 import json
+import re
 
 from engine.models import MatchRequest, MatchResponse, Policy
 from engine.matcher import PolicyMatcher
