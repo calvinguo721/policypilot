@@ -2,16 +2,16 @@ name: Deploy Changes
 on:
   workflow_dispatch:
     inputs:
-      script:
-        description: 'Script URL or inline command'
+      script_name:
+        description: 'Script name in scripts/ folder'
         required: true
-        default: 'echo hello'
+        default: 'fix_v3.py'
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Copy and execute script
+    - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 121.43.67.216
@@ -20,7 +20,21 @@ jobs:
         command_timeout: 120s
         script_stop: true
         script: |
-          cat > /tmp/fix.py << 'SCRIPT_EOF'
-          ${{ github.event.inputs.script }}
-          SCRIPT_EOF
-          python3 /tmp/fix.py
+          echo "Ready to receive script"
+    - name: Copy script to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: 121.43.67.216
+        username: root
+        password: 136204Aoc
+        source: "scripts/${{ github.event.inputs.script_name }}"
+        target: "/tmp"
+    - name: Execute script
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: 121.43.67.216
+        username: root
+        password: 136204Aoc
+        command_timeout: 120s
+        script_stop: true
+        script: python3 /tmp/scripts/${{ github.event.inputs.script_name }}
