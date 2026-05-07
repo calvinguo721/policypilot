@@ -539,6 +539,8 @@ async def partner_chat(
     # === RAG：从政策数据库检索 ===
     query = request_body.query
     matched_policies_data = []
+    keywords = []
+    found_districts = []
     
     try:
         all_policies = matcher.get_all_policies()
