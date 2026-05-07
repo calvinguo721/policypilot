@@ -544,8 +544,9 @@ async def partner_chat(
         all_policies = matcher.get_all_policies()
         query_lower = query.lower()
         
-        # 提取中文关键词
-        keywords = re.findall(r'[\u4e00-\u9fff]{2,}', query)
+        # 提取中文关键词 - 2-4字短词优先
+        raw_keywords = re.findall(r'[\u4e00-\u9fff]{2,4}', query)
+        keywords = list(set(raw_keywords))  # 去重
         
         # 地区关键词
         district_map = ["海珠", "天河", "越秀", "荔湾", "白云", "黄埔", "番禺", "花都", "南沙", "从化", "增城",
@@ -564,7 +565,7 @@ async def partner_chat(
         scored = []
         for p in all_policies:
             score = 0
-            pd = p.dict() if hasattr(p, 'dict') else p
+            pd = p.model_dump() if hasattr(p, 'model_dump') else (p.dict() if hasattr(p, 'dict') else p)
             p_name = str(pd.get('name', ''))
             p_district = str(pd.get('district', ''))
             p_category = str(pd.get('category', ''))
@@ -699,7 +700,9 @@ async def partner_chat(
             "status": "ready",
             "remaining_today": remaining,
             "daily_limit": daily_limit,
-            "policies_found": len(matched_policies_data)
+            "policies_found": len(matched_policies_data),
+            "keywords": keywords[:5],
+            "districts": found_districts
         }
     )
 
