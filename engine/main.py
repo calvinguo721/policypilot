@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
 import os
 import json
@@ -248,7 +248,7 @@ async def match_policies(request: MatchRequest, partner_id: Optional[str] = Head
         raise HTTPException(status_code=500, detail=f"匹配出错: {str(e)}")
 
 
-@app.get("/policies", response_model=list[Policy])
+@app.get("/policies", response_model=List[Policy])
 async def get_policies(district: str = None, category: str = None, partner_id: Optional[str] = Header(None, alias="X-Partner-ID")):
     """获取政策列表"""
     result = []
