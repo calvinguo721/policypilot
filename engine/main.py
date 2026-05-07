@@ -546,9 +546,13 @@ async def partner_chat(
         all_policies = matcher.get_all_policies()
         query_lower = query.lower()
         
-        # 提取中文关键词 - 2-4字短词优先
-        raw_keywords = re.findall(r'[\u4e00-\u9fff]{2,4}', query)
-        keywords = list(set(raw_keywords))  # 去重
+        # 提取中文关键词 - 滑动窗口提取2-5字子串
+        keywords = set()
+        for seg in re.findall(r'[\u4e00-\u9fff]+', query):
+            for length in range(2, min(len(seg)+1, 6)):
+                for i in range(len(seg)-length+1):
+                    keywords.add(seg[i:i+length])
+        keywords = list(keywords)
         
         # 地区关键词
         district_map = ["海珠", "天河", "越秀", "荔湾", "白云", "黄埔", "番禺", "花都", "南沙", "从化", "增城",
