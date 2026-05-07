@@ -491,17 +491,14 @@ async def partner_chat(
     request_body: PartnerChatRequest,
     request: Request
 ):
-    """合作伙伴白标接口"""
+    """合作伙伴白标接口 - RAG增强版：基于真实政策数据库回答"""
     partner_id = request.headers.get("x-partner-id")
     
     if not partner_id:
         partner_id = request_body.company_info.get('partner_id') if request_body.company_info else None
     
     if not partner_id:
-        raise HTTPException(
-            status_code=400, 
-            detail="缺少合作伙伴标识，请通过 X-Partner-ID 请求头传递"
-        )
+        partner_id = "web_guest"
     
     config = load_partner_config()
     partners = config.get("partners", {})
@@ -512,30 +509,190 @@ async def partner_chat(
             "status": "pending_activation",
             "created_at": "auto"
         }
-        print(f"📝 新合作伙伴注册请求: {partner_id}")
     
     branding = get_partner_branding(partner_id)
     
     if request_body.custom_branding:
         branding.update(request_body.custom_branding)
     
-    response_text = f"[{branding['name']}] 收到您的咨询，正在处理中..."
+    # === 限流检查 ===
+    daily_limit = 999
+    usage_file = f"/tmp/chat_usage_{partner_id}.json"
+    today_str = __import__('datetime').date.today().isoformat()
     
-    if request_body.company_info:
-        try:
-            from models import Company
+    try:
+        if os.path.exists(usage_file):
+            with open(usage_file, 'r') as f:
+                usage = json.load(f)
+        else:
+            usage = {}
+        
+        if usage.get('date') != today_str:
+            usage = {'date': today_str, 'count': 0}
+        
+        if usage['count'] >= daily_limit:
+            return PartnerChatResponse(
+                response=f"您今日的免费AI对话次数已用完（每日{daily_limit}次）。升级包月会员可享每月500次AI对话，首年仅899元/年。",
+                partner_id=partner_id,
+                branding=branding,
+                metadata={"api_version": "1.0", "status": "rate_limited", "remaining_today": 0, "daily_limit": daily_limit}
+            )
+    except Exception:
+        usage = {'date': today_str, 'count': 0}
+    
+    # === RAG：从政策数据库检索 ===
+    query = request_body.query
+    matched_policies_data = []
+    
+    try:
+        all_policies = matcher.get_all_policies()
+        query_lower = query.lower()
+        
+        # 提取中文关键词
+        keywords = re.findall(r'[\u4e00-\u9fff]{2,}', query)
+        
+        # 地区关键词
+        district_map = ["海珠", "天河", "越秀", "荔湾", "白云", "黄埔", "番禺", "花都", "南沙", "从化", "增城",
+                       "广州", "深圳", "北京", "上海", "佛山", "东莞", "杭州", "苏州",
+                       "越秀区", "荔湾区", "白云区", "黄埔区", "番禺区", "花都区", "南沙区", "从化区", "增城区"]
+        found_districts = [d for d in district_map if d in query]
+        
+        # 类别/行业关键词
+        cat_words = ["补贴", "创业", "人才", "融资", "研发", "技改", "知识产权", "税收", "租金", 
+                    "人工智能", "AI", "大模型", "软件", "集成电路", "专精特新", "高新", "数字化",
+                    "OPC", "运营", "入驻", "孵化器", "园区", "创新", "科技", "产业", "扶持",
+                    "奖励", "资助", "认定", "申报", "减免", "贷款", "贴息"]
+        found_cats = [c for c in cat_words if c.lower() in query_lower]
+        
+        # 评分搜索
+        scored = []
+        for p in all_policies:
+            score = 0
+            pd = p.dict() if hasattr(p, 'dict') else p
+            p_name = str(pd.get('name', ''))
+            p_district = str(pd.get('district', ''))
+            p_category = str(pd.get('category', ''))
+            p_subsidy = str(pd.get('subsidy_amount', ''))
+            p_cond = str(pd.get('conditions', ''))
+            p_text = f"{p_name} {p_district} {p_category} {p_subsidy} {p_cond}".lower()
             
-            company = Company(**request_body.company_info)
-            matched = matcher.match(company)
+            for d in found_districts:
+                if d in p_district or d in p_name:
+                    score += 30
             
-            if matched:
-                response_text = f"根据您的企业信息，我为您匹配到 {len(matched)} 条适用政策：\n"
-                for i, p in enumerate(matched[:5], 1):
-                    response_text += f"{i}. {p.policy.name} - {p.policy.subsidy_amount}\n"
-            else:
-                response_text = "抱歉，根据您的企业信息，暂未匹配到适用政策。"
-        except Exception as e:
-            response_text = f"政策匹配服务暂时不可用，请稍后再试。"
+            for kw in keywords:
+                if kw in p_text:
+                    score += 8
+            
+            for c in found_cats:
+                if c.lower() in p_text:
+                    score += 12
+            
+            if pd.get('subsidy_amount') and str(pd['subsidy_amount']) not in ('未明确', '', 'None'):
+                score += 5
+            
+            if score > 0:
+                scored.append((score, pd))
+        
+        scored.sort(key=lambda x: x[0], reverse=True)
+        matched_policies_data = [p for _, p in scored[:8]]
+        
+    except Exception as e:
+        print(f"Policy search error: {e}")
+    
+    # === 构建RAG上下文 ===
+    policy_context = ""
+    if matched_policies_data:
+        policy_context = "\n\n## 以下是从政策通数据库检索到的相关政策（请严格基于这些真实数据回答）：\n\n"
+        for i, p in enumerate(matched_policies_data, 1):
+            policy_context += f"### 政策{i}: {p.get('name', '未知')}\n"
+            policy_context += f"- 地区: {p.get('district', '未明确')}\n"
+            sa = p.get('subsidy_amount', '')
+            if sa and str(sa) not in ('未明确', '', 'None'):
+                policy_context += f"- 补贴金额: {sa}\n"
+            if p.get('category'):
+                policy_context += f"- 类别: {p['category']}\n"
+            conds = p.get('conditions', {})
+            if isinstance(conds, dict):
+                ind = conds.get('industry', [])
+                if ind:
+                    industry_str = ', '.join(ind[:5]) if isinstance(ind, list) else str(ind)
+                    policy_context += f"- 适用行业: {industry_str}\n"
+                other = conds.get('other', [])
+                if other and isinstance(other, list):
+                    for c in other[:3]:
+                        if len(str(c)) < 100:
+                            policy_context += f"- 条件: {c}\n"
+            elif isinstance(conds, str) and conds:
+                policy_context += f"- 条件: {conds[:200]}\n"
+            dl = p.get('deadline', '')
+            if dl and str(dl) not in ('未明确', '', 'None'):
+                policy_context += f"- 截止时间: {dl}\n"
+            lk = p.get('link', '')
+            if lk and str(lk).startswith('http'):
+                policy_context += f"- 政策链接: {lk}\n"
+            policy_context += "\n"
+    else:
+        policy_context = "\n\n注意：未从政策通数据库中检索到直接匹配的政策，请基于通用知识回答，但明确告知这是通用建议，建议用户提供更具体信息以获得精准匹配。"
+    
+    # === 调用DeepSeek ===
+    system_prompt = """你是政策通AI助手，专注中国政府补贴政策。核心原则：
+1. 只基于提供的政策数据回答，绝不编造不存在的政策
+2. 必须给出具体数字：补贴金额、申报条件、截止时间
+3. 不要说"建议查阅""请联系"等推诿话术
+4. 量化收益：能算出能拿多少钱就算
+5. 用编号列表，每条政策含金额+条件+时间
+6. 如果数据不够精准，说明需要什么额外信息来精准匹配
+
+回答模板：
+📊 匹配到X条政策：
+1. **政策名**
+   💰 金额：XXX
+   📋 条件：XXX
+   ⏰ 截止：XXX
+💡 优先建议：XXX"""
+
+    user_prompt = f"用户问题：{query}\n\n{policy_context}\n\n请基于以上真实政策数据直接回答。给出具体金额、条件、时间。"
+    
+    response_text = None
+    from engine.llm_fallback import llm_fallback
+    try:
+        response_text = llm_fallback._call_deepseek(user_prompt, system_prompt)
+    except Exception as e:
+        print(f"DeepSeek error: {e}")
+    
+    # Fallback: 模板回答
+    if not response_text and matched_policies_data:
+        parts = [f"📊 根据您的查询，匹配到{len(matched_policies_data)}条政策：\n\n"]
+        for i, p in enumerate(matched_policies_data[:5], 1):
+            parts.append(f"{i}. **{p.get('name', '未知')}**\n")
+            sa = p.get('subsidy_amount', '')
+            if sa and str(sa) not in ('未明确', '', 'None'):
+                parts.append(f"   💰 补贴：{sa}\n")
+            if p.get('district'):
+                parts.append(f"   📍 {p['district']}\n")
+            conds = p.get('conditions', {})
+            if isinstance(conds, dict):
+                other = conds.get('other', [])
+                if other and isinstance(other, list):
+                    for c in other[:2]:
+                        if len(str(c)) < 60:
+                            parts.append(f"   📋 {c}\n")
+            parts.append("\n")
+        response_text = "".join(parts)
+    
+    if not response_text:
+        response_text = "抱歉，暂时无法处理您的请求，请稍后再试。"
+    
+    # 更新用量
+    try:
+        usage['count'] = usage.get('count', 0) + 1
+        with open(usage_file, 'w') as f:
+            json.dump(usage, f)
+    except Exception:
+        pass
+    
+    remaining = max(0, daily_limit - usage.get('count', 0))
     
     return PartnerChatResponse(
         response=response_text,
@@ -544,9 +701,12 @@ async def partner_chat(
         metadata={
             "api_version": "1.0",
             "status": "ready",
-            "note": "完整鉴权功能待合作伙伴接入时完善"
+            "remaining_today": remaining,
+            "daily_limit": daily_limit,
+            "policies_found": len(matched_policies_data)
         }
     )
+
 
 
 @app.get("/api/partner/config/{partner_id}")
