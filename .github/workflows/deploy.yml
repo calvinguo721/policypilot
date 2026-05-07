@@ -3,18 +3,20 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: 'Command to run'
+        description: 'Command to run on server'
         required: true
         default: 'echo hello'
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Execute on server
+    - uses: actions/checkout@v4
+    - name: Deploy script
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 121.43.67.216
         username: root
         password: 136204Aoc
         command_timeout: 120s
+        script_stop: true
         script: ${{ github.event.inputs.command }}
