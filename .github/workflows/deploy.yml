@@ -2,8 +2,8 @@ name: Deploy Changes
 on:
   workflow_dispatch:
     inputs:
-      command:
-        description: 'Command to run on server'
+      script:
+        description: 'Script URL or inline command'
         required: true
         default: 'echo hello'
 jobs:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Deploy script
+    - name: Copy and execute script
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: 121.43.67.216
@@ -19,4 +19,8 @@ jobs:
         password: 136204Aoc
         command_timeout: 120s
         script_stop: true
-        script: ${{ github.event.inputs.command }}
+        script: |
+          cat > /tmp/fix.py << 'SCRIPT_EOF'
+          ${{ github.event.inputs.script }}
+          SCRIPT_EOF
+          python3 /tmp/fix.py
