@@ -200,6 +200,22 @@
         /* Highlight amounts in gold */
         .amount-highlight { color: var(--gold); font-weight: 700; font-size: 1.1em; }
 
+        
+        /* Token Transparency */
+        .token-transparency {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+        .token-stat { display: flex; flex-direction: column; gap: 2px; }
+        .token-label { font-size: 11px; color: #64748b; }
+        .token-value { font-size: 14px; font-weight: 600; color: #fbbf24; }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .chat-header-content { flex-direction: column; gap: 12px; }
@@ -277,7 +293,7 @@
     <!-- Footer -->
     <footer class="chat-footer">
         <div class="chat-footer-text">
-            政策通AI助手 · <span class="remaining-count" id="remainingCount">今日剩余 999 次查询</span>
+            词元黑洞 · 政策通 · <span class="remaining-count" id="remainingCount">今日剩余 999 次查询</span>
         </div>
     </footer>
 
@@ -409,6 +425,16 @@
                 // Add policy evidence badge
                 if (metadata && metadata.policies_found > 0) {
                     html += '<div class="policy-evidence">✅ 基于' + metadata.policies_found + '条真实政策数据回答</div>';
+                }
+                
+                // Token transparency
+                if (metadata && metadata.tokens_total) {
+                    html += '<div class="token-transparency">';
+                    html += '<div class="token-stat"><span class="token-label">Token消耗</span><span class="token-value">' + metadata.tokens_total.toLocaleString() + '</span></div>';
+                    html += '<div class="token-stat"><span class="token-label">模型</span><span class="token-value">' + (metadata.model_name || 'DeepSeek V3') + '</span></div>';
+                    html += '<div class="token-stat"><span class="token-label">匹配效率</span><span class="token-value">' + (metadata.token_efficiency || '-') + '条/千token</span></div>';
+                    html += '<div class="token-stat"><span class="token-label">预估成本</span><span class="token-value">¥' + (metadata.cost_estimate || '0') + '</span></div>';
+                    html += '</div>';
                 }
                 
                 html += '<div class="message-time">' + formatTime() + '</div>';
