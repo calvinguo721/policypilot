@@ -699,6 +699,15 @@ async def partner_chat(
     
     remaining = max(0, daily_limit - usage.get('count', 0))
     
+    # Token measurement
+    input_chars = len(query) + len(policy_context) + len(system_prompt)
+    output_chars = len(response_text)
+    input_tokens = int(input_chars * 2)
+    output_tokens = int(output_chars * 2)
+    total_tokens = input_tokens + output_tokens
+    cost_cny = round(total_tokens * 1 / 1000000, 6)
+    token_eff = round(len(matched_policies_data) / max(total_tokens / 1000, 1), 2)
+    
     return PartnerChatResponse(
         response=response_text,
         partner_id=partner_id,
@@ -710,7 +719,13 @@ async def partner_chat(
             "daily_limit": daily_limit,
             "policies_found": len(matched_policies_data),
             "keywords": keywords[:5],
-            "districts": found_districts
+            "districts": found_districts,
+            "tokens_input": input_tokens,
+            "tokens_output": output_tokens,
+            "tokens_total": total_tokens,
+            "model_name": "DeepSeek V3",
+            "cost_estimate": cost_cny,
+            "token_efficiency": token_eff
         }
     )
 
